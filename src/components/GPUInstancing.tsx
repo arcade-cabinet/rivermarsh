@@ -1,17 +1,67 @@
 /**
  * GPU-Driven Instancing System
  * 
- * Uses GPU compute for instance matrix calculations, providing
- * massive performance gains for vegetation and particle systems.
+ * Uses GPU vertex shaders for instance animation (wind) and LOD,
+ * removing heavy CPU overhead from the main loop.
  */
 
 import { useRef, useMemo, useEffect } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
-import { noise3D, fbm, getBiomeAt, BiomeData } from '../utils/sdf';
+import { fbm, getBiomeAt, BiomeData } from '../utils/sdf';
 
 // =============================================================================
-// CPU FALLBACK FOR INSTANCING
+// SHADER CHUNKS
+// =============================================================================
+
+const windShaderChunk = `
+  uniform float uTime;
+  uniform float uWindStrength;
+  uniform float uLodDistance;
+  uniform vec3 uCameraPos;
+  uniform bool uEnableWind;
+
+  // Simple pseudo-random noise
+  float hash(vec2 p) {
+      vec3 p3 = fract(vec3(p.xyx) * .1031);
+      p3 += dot(p3, p3.yzx + 33.33);
+      return fract((p3.x + p3.y) * p3.z);
+  }
+
+  float noise(vec2 p) {
+      vec2 i = floor(p);
+      vec2 f = fract(p);
+      float a = hash(i);
+      float b = hash(i + vec2(1.0, 0.0));
+      float c = hash(i + vec2(0.0, 1.0));
+      float d = hash(i + vec2(1.0, 1.0));
+      vec2 u = f * f * (3.0 - 2.0 * f);
+      return mix(a, b, u.x) + (c - a) * u.y * (1.0 - u.x) + (d - b) * u.x * u.y;
+  }
+
+  void applyWind(inout vec3 position, vec3 instancePos) {
+      if (!uEnableWind) return;
+
+      // Calculate wind based on instance position and time
+      // Use instancePos.xz to keep wind consistent per instance
+      float windPhase = uTime * 2.0 + instancePos.x * 0.1 + instancePos.z * 0.1;
+      float windNoiseVal = noise(instancePos.xz * 0.05 + uTime * 0.1);
+
+      // Bend amount increases with height (y)
+      // Assuming pivot is at y=0
+      float heightFactor = max(0.0, position.y);
+
+      float bendAngle = sin(windPhase) * uWindStrength * 0.5 * (0.5 + 0.5 * windNoiseVal);
+
+      // Simple shear displacement in local space
+      // Note: This rotates with the instance, giving "noisy" wind direction
+      position.x += bendAngle * heightFactor;
+      position.z += cos(windPhase * 0.7) * uWindStrength * 0.2 * heightFactor;
+  }
+`;
+
+// =============================================================================
+// DATA GENERATION (CPU)
 // =============================================================================
 
 interface InstanceData {
@@ -103,9 +153,25 @@ export function GPUInstancedMesh({
     receiveShadow = true
 }: GPUInstancedMeshProps) {
     const meshRef = useRef<THREE.InstancedMesh>(null);
-    const { camera } = useThree();
+    const materialRef = useRef<THREE.Material>(material);
     
-    // Initialize instance matrices
+    // Stable uniforms object
+    const uniforms = useMemo(() => ({
+        uTime: { value: 0 },
+        uWindStrength: { value: windStrength },
+        uLodDistance: { value: lodDistance },
+        uCameraPos: { value: new THREE.Vector3() },
+        uEnableWind: { value: enableWind }
+    }), []);
+
+    // Update uniform values when props change
+    useEffect(() => {
+        uniforms.uWindStrength.value = windStrength;
+        uniforms.uLodDistance.value = lodDistance;
+        uniforms.uEnableWind.value = enableWind;
+    }, [windStrength, lodDistance, enableWind, uniforms]);
+
+    // Initialize instance matrices and patch material
     useEffect(() => {
         if (!meshRef.current) return;
         
@@ -113,7 +179,9 @@ export function GPUInstancedMesh({
         const matrix = new THREE.Matrix4();
         const quaternion = new THREE.Quaternion();
         
-        for (let i = 0; i < Math.min(instances.length, count); i++) {
+        const activeCount = Math.min(instances.length, count);
+
+        for (let i = 0; i < activeCount; i++) {
             const instance = instances[i];
             quaternion.setFromEuler(instance.rotation);
             matrix.compose(instance.position, quaternion, instance.scale);
@@ -121,55 +189,65 @@ export function GPUInstancedMesh({
         }
         
         mesh.instanceMatrix.needsUpdate = true;
-        mesh.count = Math.min(instances.length, count);
-    }, [instances, count]);
-    
-    // Animate wind
+        mesh.count = activeCount;
+
+        // Patch the material for vertex shader wind and LOD
+        // We use onBeforeCompile to inject our logic into the standard material
+        material.onBeforeCompile = (shader) => {
+            // Assign uniforms
+            shader.uniforms.uTime = uniforms.uTime;
+            shader.uniforms.uWindStrength = uniforms.uWindStrength;
+            shader.uniforms.uLodDistance = uniforms.uLodDistance;
+            shader.uniforms.uCameraPos = uniforms.uCameraPos;
+            shader.uniforms.uEnableWind = uniforms.uEnableWind;
+            
+            // Inject functions and uniforms declarations
+            shader.vertexShader = windShaderChunk + shader.vertexShader;
+            
+            // Inject logic
+            // We need to access instanceMatrix (which provides world position)
+            // and apply wind to 'transformed' (local position)
+            shader.vertexShader = shader.vertexShader.replace(
+                '#include <begin_vertex>',
+                `
+                #include <begin_vertex>
+
+                #ifdef USE_INSTANCING
+                    // instanceMatrix column 3 is translation (world position of instance origin)
+                    vec3 instancePos = vec3(instanceMatrix[3][0], instanceMatrix[3][1], instanceMatrix[3][2]);
+
+                    // LOD Logic
+                    float distToCamera = distance(instancePos, uCameraPos);
+
+                    // 1.0 = full scale, 0.0 = hidden
+                    // Smooth transition from 0.5*lod to lod
+                    float lodScale = 1.0 - smoothstep(uLodDistance * 0.5, uLodDistance, distToCamera);
+
+                    if (lodScale < 0.01) {
+                        // Collapse geometry if too far
+                        transformed = vec3(0.0);
+                    } else {
+                        // Apply LOD scale
+                        transformed *= lodScale;
+
+                        // Apply Wind
+                        applyWind(transformed, instancePos);
+                    }
+                #endif
+                `
+            );
+        };
+
+        // Trigger material update
+        material.needsUpdate = true;
+        materialRef.current = material;
+
+    }, [instances, count, material, uniforms]);
+
+    // Update time and camera position per frame
     useFrame((state) => {
-        if (!meshRef.current || !enableWind) return;
-        
-        const mesh = meshRef.current;
-        const matrix = new THREE.Matrix4();
-        const position = new THREE.Vector3();
-        const quaternion = new THREE.Quaternion();
-        const scale = new THREE.Vector3();
-        const tempQuaternion = new THREE.Quaternion();
-        const time = state.clock.elapsedTime;
-        
-        for (let i = 0; i < mesh.count; i++) {
-            mesh.getMatrixAt(i, matrix);
-            matrix.decompose(position, quaternion, scale);
-            
-            // Calculate wind effect
-            const windPhase = time * 2 + position.x * 0.1 + position.z * 0.1;
-            const windNoise = noise3D(position.x * 0.05, time * 0.5, position.z * 0.05);
-            
-            const bendAngle = Math.sin(windPhase) * windStrength * 0.3 * (0.5 + 0.5 * windNoise);
-            const bendAxis = new THREE.Vector3(-Math.cos(windPhase), 0, Math.sin(windPhase)).normalize();
-            
-            // Apply bend rotation
-            tempQuaternion.setFromAxisAngle(bendAxis, bendAngle);
-            
-            // Get original rotation from instance data
-            const originalQuaternion = new THREE.Quaternion().setFromEuler(instances[i].rotation);
-            quaternion.copy(tempQuaternion).multiply(originalQuaternion);
-            
-            // LOD scaling
-            const dist = position.distanceTo(camera.position);
-            const lodScale = 1 - Math.max(0, Math.min(1, (dist - lodDistance * 0.5) / (lodDistance * 0.5)));
-            
-            if (lodScale < 0.01) {
-                // Completely hidden
-                scale.set(0, 0, 0);
-            } else {
-                scale.copy(instances[i].scale).multiplyScalar(lodScale);
-            }
-            
-            matrix.compose(position, quaternion, scale);
-            mesh.setMatrixAt(i, matrix);
-        }
-        
-        mesh.instanceMatrix.needsUpdate = true;
+        uniforms.uTime.value = state.clock.elapsedTime;
+        uniforms.uCameraPos.value.copy(state.camera.position);
     });
     
     return (
@@ -184,7 +262,7 @@ export function GPUInstancedMesh({
 }
 
 // =============================================================================
-// VEGETATION SYSTEM
+// VEGETATION SYSTEMS
 // =============================================================================
 
 interface GrassInstancesProps {
