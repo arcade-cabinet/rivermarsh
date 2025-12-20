@@ -9,9 +9,10 @@ import {
     ProceduralSky,
     Rain,
     Snow,
-    VolumetricFog,
+    VolumetricFogMesh,
     AdvancedWater,
     ParticleEmitter,
+    createTimeOfDay,
 } from '@jbcom/strata'
 import { SDFTerrain, DEFAULT_BIOMES, useTerrainHeight } from './SDFTerrain'
 import { GrassInstances, TreeInstances, RockInstances } from './GPUInstancing'
@@ -66,13 +67,15 @@ export function World() {
 function WeatherEffects() {
     const [weather, setWeather] = useState<'clear' | 'rain' | 'snow'>('clear')
     const [intensity, setIntensity] = useState(0)
+    const windRef = useRef(new THREE.Vector3(0.3, 0, 0.1))
 
     useFrame(() => {
         // Read weather from ECS
         for (const entity of ecsWorld.with('weather')) {
             const w = entity.weather
-            if (w.type !== weather) {
-                setWeather(w.type)
+            const currentWeather = w.current === 'storm' ? 'rain' : w.current
+            if (currentWeather !== weather && (currentWeather === 'clear' || currentWeather === 'rain' || currentWeather === 'snow')) {
+                setWeather(currentWeather)
             }
             if (w.intensity !== intensity) {
                 setIntensity(w.intensity)
@@ -85,11 +88,11 @@ function WeatherEffects() {
     }
 
     if (weather === 'rain') {
-        return <Rain intensity={intensity} windStrength={0.3} color="#88aacc" />
+        return <Rain intensity={intensity} wind={windRef.current} color="#88aacc" />
     }
 
     if (weather === 'snow') {
-        return <Snow intensity={intensity} windStrength={0.2} color="#ffffff" />
+        return <Snow intensity={intensity} wind={windRef.current} color="#ffffff" />
     }
 
     return null
@@ -119,11 +122,15 @@ function NightFireflies({ count = 80, radius = 25 }: { count?: number; radius?: 
             lifetime={4}
             shape="sphere"
             shapeParams={{ radius }}
-            velocity={{ min: { x: -0.1, y: 0.05, z: -0.1 }, max: { x: 0.1, y: 0.2, z: 0.1 } }}
-            color={{ start: '#ffee88', end: '#ffaa44' }}
-            size={{ start: 0.08, end: 0.02 }}
-            opacity={{ start: 0.8, end: 0 }}
-            blending="additive"
+            velocity={[0, 0.1, 0]}
+            velocityVariance={[0.2, 0.15, 0.2]}
+            startColor="#ffee88"
+            endColor="#ffaa44"
+            startSize={0.08}
+            endSize={0.02}
+            startOpacity={0.8}
+            endOpacity={0}
+            blending={THREE.AdditiveBlending}
             position={[0, 1, 0]}
         />
     )
@@ -174,8 +181,8 @@ function MarshWaterFeatures() {
                 <group key={i} position={pool.position}>
                     <AdvancedWater
                         size={pool.size}
-                        waterColor="#006994"
-                        deepWaterColor="#003366"
+                        color="#006994"
+                        deepColor="#003366"
                         foamColor="#ffffff"
                         causticIntensity={0.4}
                     />
@@ -256,6 +263,7 @@ function Lighting() {
 function Atmosphere() {
     const [timePhase, setTimePhase] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day')
     const [fogDensity, setFogDensity] = useState(0.025)
+    const [hour, setHour] = useState(12)
 
     useFrame(() => {
         for (const { time } of ecsWorld.with('time')) {
@@ -265,33 +273,24 @@ function Atmosphere() {
             if (time.fogDensity !== fogDensity) {
                 setFogDensity(time.fogDensity)
             }
+            if (time.hour !== hour) {
+                setHour(time.hour)
+            }
         }
     })
 
-    // Map time phase to sun elevation for ProceduralSky
-    const sunElevation =
-        timePhase === 'day'
-            ? 45
-            : timePhase === 'dawn'
-              ? 5
-              : timePhase === 'dusk'
-                ? -5
-                : -30
+    // Create time of day state for ProceduralSky
+    const timeOfDay = createTimeOfDay(hour)
 
     return (
         <>
             {/* Strata's procedural sky with dynamic sun */}
             <ProceduralSky
-                sunElevation={sunElevation}
-                sunAzimuth={180}
-                turbidity={10}
-                rayleigh={2}
-                mieCoefficient={0.005}
-                mieDirectionalG={0.8}
+                timeOfDay={timeOfDay}
             />
 
             {/* Strata's volumetric fog */}
-            <VolumetricFog
+            <VolumetricFogMesh
                 density={fogDensity}
                 color={timePhase === 'night' ? '#1a1a2a' : '#aabbcc'}
                 height={20}

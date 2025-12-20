@@ -17,8 +17,8 @@ export function Water({ position = [0, -0.2, 0], size = 100 }: WaterProps) {
         <group position={position}>
             <AdvancedWater
                 size={size}
-                waterColor="#006994"
-                deepWaterColor="#003366"
+                color="#006994"
+                deepColor="#003366"
                 foamColor="#ffffff"
                 causticIntensity={0.4}
             />

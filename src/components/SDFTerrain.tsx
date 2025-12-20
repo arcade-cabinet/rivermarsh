@@ -15,7 +15,7 @@ import {
     noise3D,
     marchingCubes,
     createGeometryFromMarchingCubes,
-} from '@jbcom/strata/core'
+} from '@jbcom/strata'
 import type { BiomeData } from '@jbcom/strata'
 
 // Re-export for consumers
@@ -23,13 +23,13 @@ export type { BiomeData }
 
 // Default biome layout for the world
 export const DEFAULT_BIOMES: BiomeData[] = [
-    { type: 'marsh', center: { x: 0, y: 0 }, radius: 30 },
-    { type: 'forest', center: { x: 50, y: 0 }, radius: 40 },
-    { type: 'desert', center: { x: -50, y: 30 }, radius: 35 },
-    { type: 'tundra', center: { x: 0, y: -60 }, radius: 45 },
-    { type: 'savanna', center: { x: 60, y: 60 }, radius: 50 },
-    { type: 'mountain', center: { x: -60, y: -60 }, radius: 55 },
-    { type: 'scrubland', center: { x: 80, y: -40 }, radius: 30 },
+    { type: 'marsh', center: new THREE.Vector2(0, 0), radius: 30 },
+    { type: 'forest', center: new THREE.Vector2(50, 0), radius: 40 },
+    { type: 'desert', center: new THREE.Vector2(-50, 30), radius: 35 },
+    { type: 'tundra', center: new THREE.Vector2(0, -60), radius: 45 },
+    { type: 'savanna', center: new THREE.Vector2(60, 60), radius: 50 },
+    { type: 'mountain', center: new THREE.Vector2(-60, -60), radius: 55 },
+    { type: 'scrubland', center: new THREE.Vector2(80, -40), radius: 30 },
 ]
 
 interface SDFTerrainProps {
