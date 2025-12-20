@@ -6,7 +6,7 @@
  */
 
 import { useRef, useMemo, useEffect } from 'react';
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import * as THREE from 'three';
 import { fbm, getBiomeAt, BiomeData } from '../utils/sdf';
 
@@ -140,9 +140,6 @@ interface GPUInstancedMeshProps {
     receiveShadow?: boolean;
 }
 
-// Symbol to mark materials as patched
-const MATERIAL_PATCHED = Symbol('gpu-instancing-patched');
-
 export function GPUInstancedMesh({
     geometry,
     material,
@@ -156,8 +153,7 @@ export function GPUInstancedMesh({
     receiveShadow = true
 }: GPUInstancedMeshProps) {
     const meshRef = useRef<THREE.InstancedMesh>(null);
-    const materialRef = useRef<THREE.Material | null>(null);
-    const originalOnBeforeCompileRef = useRef<typeof material.onBeforeCompile | null>(null);
+    const materialRef = useRef<THREE.Material>(material);
     
     // Stable uniforms object
     const uniforms = useMemo(() => ({
@@ -195,24 +191,9 @@ export function GPUInstancedMesh({
         mesh.instanceMatrix.needsUpdate = true;
         mesh.count = activeCount;
 
-        // Check if material already patched (guard against repeated mutations)
-        const materialAny = material as THREE.Material & { [MATERIAL_PATCHED]?: boolean };
-        if (materialAny[MATERIAL_PATCHED] && materialRef.current === material) {
-            // Already patched by this component, skip re-patching
-            return;
-        }
-
-        // Store original onBeforeCompile for cleanup
-        originalOnBeforeCompileRef.current = material.onBeforeCompile;
-        
         // Patch the material for vertex shader wind and LOD
         // We use onBeforeCompile to inject our logic into the standard material
-        material.onBeforeCompile = (shader, renderer) => {
-            // Call original if exists
-            if (originalOnBeforeCompileRef.current) {
-                originalOnBeforeCompileRef.current(shader, renderer);
-            }
-            
+        material.onBeforeCompile = (shader) => {
             // Assign uniforms
             shader.uniforms.uTime = uniforms.uTime;
             shader.uniforms.uWindStrength = uniforms.uWindStrength;
@@ -257,26 +238,9 @@ export function GPUInstancedMesh({
             );
         };
 
-        // Mark material as patched and trigger update
-        materialAny[MATERIAL_PATCHED] = true;
+        // Trigger material update
         material.needsUpdate = true;
         materialRef.current = material;
-
-        // Cleanup function to restore original onBeforeCompile
-        return () => {
-            if (materialRef.current) {
-                const matAny = materialRef.current as THREE.Material & { [MATERIAL_PATCHED]?: boolean };
-                // Restore original onBeforeCompile
-                if (originalOnBeforeCompileRef.current !== null) {
-                    materialRef.current.onBeforeCompile = originalOnBeforeCompileRef.current;
-                } else {
-                    // Reset to no-op if there was no original
-                    materialRef.current.onBeforeCompile = () => {};
-                }
-                delete matAny[MATERIAL_PATCHED];
-                materialRef.current.needsUpdate = true;
-            }
-        };
 
     }, [instances, count, material, uniforms]);
 
