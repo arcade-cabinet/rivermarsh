@@ -21,13 +21,13 @@ export type { BiomeData }
 // =============================================================================
 
 export const DEFAULT_BIOMES: BiomeData[] = [
-    { type: 'marsh', center: { x: 0, y: 0 }, radius: 30 },
-    { type: 'forest', center: { x: 50, y: 0 }, radius: 40 },
-    { type: 'savanna', center: { x: 60, y: 60 }, radius: 50 },
-    { type: 'mountain', center: { x: -40, y: 40 }, radius: 35 },
-    { type: 'tundra', center: { x: -60, y: -30 }, radius: 45 },
-    { type: 'desert', center: { x: 70, y: -50 }, radius: 40 },
-    { type: 'scrubland', center: { x: -30, y: -60 }, radius: 35 },
+    { type: 'marsh', center: new THREE.Vector2(0, 0), radius: 30 },
+    { type: 'forest', center: new THREE.Vector2(50, 0), radius: 40 },
+    { type: 'savanna', center: new THREE.Vector2(60, 60), radius: 50 },
+    { type: 'mountain', center: new THREE.Vector2(-40, 40), radius: 35 },
+    { type: 'tundra', center: new THREE.Vector2(-60, -30), radius: 45 },
+    { type: 'desert', center: new THREE.Vector2(70, -50), radius: 40 },
+    { type: 'scrubland', center: new THREE.Vector2(-30, -60), radius: 35 },
 ]
 
 // =============================================================================
@@ -55,7 +55,6 @@ export function GrassInstances({
             heightFunc={heightFunc}
             height={0.4}
             color="#4a7c23"
-            windStrength={0.3}
         />
     )
 }

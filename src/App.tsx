@@ -13,7 +13,8 @@ import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
 import { Canvas } from '@react-three/fiber';
-import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
+// Post-processing effects are handled by Strata's VolumetricEffects
+// import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
 import * as THREE from 'three';
 import { useEffect } from 'react';
@@ -45,7 +46,7 @@ function Scene() {
             <FollowCamera />
             <TapToCollect />
 
-            {/* Post-processing with volumetric effects */}
+            {/* Volumetric effects for fog and underwater */}
             <VolumetricEffects
                 enableFog={true}
                 enableUnderwater={true}
@@ -55,27 +56,12 @@ function Scene() {
                     height: 5
                 }}
                 underwaterSettings={{
-                    waterColor: new THREE.Color(0.0, 0.25, 0.4),
+                    color: new THREE.Color(0.0, 0.25, 0.4),
                     density: 0.08,
                     causticStrength: 0.4,
                     waterSurface: 0
                 }}
-            >
-                <Bloom
-                    intensity={0.4}
-                    luminanceThreshold={0.75}
-                    luminanceSmoothing={0.5}
-                />
-                <Vignette
-                    offset={0.25}
-                    darkness={0.6}
-                />
-                <DepthOfField
-                    focusDistance={0.01}
-                    focalLength={0.02}
-                    bokehScale={2}
-                />
-            </VolumetricEffects>
+            />
         </>
     );
 }
