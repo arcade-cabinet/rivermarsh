@@ -187,7 +187,7 @@ export function RacingScene() {
             animation: { current: 'run', urls: ASSET_URLS.ANIMATIONS }
         });
 
-    }, []);
+    }, [startGame]);
 
     return (
         <>
