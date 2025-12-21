@@ -137,15 +137,19 @@ function RacingSystems() {
     useEffect(() => {
         const handleKey = (e: KeyboardEvent) => {
              const player = racingWorld.with('player', 'position', 'lane').first;
-             if (!player) return;
+             if (!player || player.lane == null) return;
 
-             if ((e.key === 'ArrowLeft' || e.key === 'a') && player.lane! > -1) {
-                 player.lane!--;
-                 player.position.x = RACING_CONFIG.LANES[player.lane! + 1];
+             let lane = player.lane;
+
+             if ((e.key === 'ArrowLeft' || e.key === 'a') && lane > -1) {
+                 lane--;
+             } else if ((e.key === 'ArrowRight' || e.key === 'd') && lane < 1) {
+                 lane++;
              }
-             if ((e.key === 'ArrowRight' || e.key === 'd') && player.lane! < 1) {
-                 player.lane!++;
-                 player.position.x = RACING_CONFIG.LANES[player.lane! + 1];
+
+             if (lane !== player.lane) {
+                 player.lane = lane;
+                 player.position.x = RACING_CONFIG.LANES[lane + 1];
              }
         };
 
