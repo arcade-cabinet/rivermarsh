@@ -6,7 +6,6 @@ import { racingWorld, RacingEntity } from './world';
 import { useRacingStore } from './store';
 import { ASSET_URLS, RACING_CONFIG } from './constants';
 import { useRivermarsh } from '@/stores/useRivermarsh';
-import * as THREE from 'three';
 
 // Helper hook for Miniplex archetypes
 function useArchetype(archetype: any) {
