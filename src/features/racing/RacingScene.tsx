@@ -171,7 +171,7 @@ function RacingSystems() {
 }
 
 export function RacingScene() {
-    const { startGame, isPlaying, lives, score, distance } = useRacingStore();
+    const { startGame, isPlaying, lives, score } = useRacingStore();
 
     useEffect(() => {
         for (const e of racingWorld.entities) racingWorld.remove(e);
