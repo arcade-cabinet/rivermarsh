@@ -8,7 +8,7 @@ const POSSIBLE_EVENTS = [
     'foggy_morning'
 ];
 
-export function WorldEventSystem(delta: number) {
+export function WorldEventSystem() {
     for (const entity of world.with('worldEvents', 'time')) {
         const { worldEvents, time } = entity;
         const now = Date.now();

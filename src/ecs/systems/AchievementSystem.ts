@@ -1,13 +1,10 @@
 import { world } from '../world';
 import { useAchievementStore } from '../../stores/useAchievementStore';
-import { useGameStore } from '../../stores/gameStore';
 
-let lastDayCount = 1;
 const visitedBiomes = new Set<string>();
 
-export function AchievementSystem(delta: number) {
+export function AchievementSystem() {
     const { unlockAchievement } = useAchievementStore.getState();
-    const gameStore = useGameStore.getState();
 
     // Survivor: Survive for a full day cycle
     for (const { time } of world.with('time')) {

@@ -13,6 +13,7 @@ import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
 import { AchievementSystem } from '../ecs/systems/AchievementSystem';
 import { AudioSystem } from './AudioSystem';
+import { world } from '../ecs/world';
 
 export function GameSystems() {
     const playerPos = useGameStore((s) => s.player.position);
@@ -71,13 +72,13 @@ export function GameSystems() {
         // Run ECS systems in order
         TimeSystem(delta);
         WeatherSystem(delta);
-        WorldEventSystem(delta);
+        WorldEventSystem();
         BiomeSystem(playerPos.x, playerPos.z);
         SpawnSystem(playerPos);
         AISystem(delta);
         CollisionSystem(delta);
         ResourceSystem(playerPos, delta);
-        AchievementSystem(delta);
+        AchievementSystem();
     });
 
     return <AudioSystem />;
