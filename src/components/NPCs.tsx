@@ -1,7 +1,7 @@
 import { PREDATOR_SPECIES, PREY_SPECIES } from '@/ecs/data/species';
 import { world } from '@/ecs/world';
 import { useFrame } from '@react-three/fiber';
-import { Detailed } from '@react-three/drei';
+import { Detailed, Billboard } from '@react-three/drei';
 import { RigidBody, CapsuleCollider } from '@react-three/rapier';
 import { useRef, useMemo } from 'react';
 import * as THREE from 'three';
@@ -70,6 +70,7 @@ function NPC({ entityId }: NPCProps) {
 
     const color = speciesData.primaryColor;
     const initialPos = entity.transform?.position || new THREE.Vector3(0, 0, 0);
+    const healthPercent = (entity.species?.health || 0) / (entity.species?.maxHealth || 100);
 
     return (
         <RigidBody
@@ -96,6 +97,20 @@ function NPC({ entityId }: NPCProps) {
                     <group />
                 </Detailed>
             </group>
+
+            {/* Health Bar */}
+            {healthPercent < 1 && healthPercent > 0 && (
+                <Billboard position={[0, 0.8 * sizeScale, 0]}>
+                    <mesh>
+                        <planeGeometry args={[0.8 * sizeScale, 0.08 * sizeScale]} />
+                        <meshBasicMaterial color="#000000" transparent opacity={0.5} />
+                    </mesh>
+                    <mesh position={[(healthPercent - 1) * 0.4 * sizeScale, 0, 0.01]}>
+                        <planeGeometry args={[0.8 * sizeScale * healthPercent, 0.08 * sizeScale]} />
+                        <meshBasicMaterial color={healthPercent > 0.5 ? "#44ff44" : healthPercent > 0.25 ? "#ffff44" : "#ff4444"} />
+                    </mesh>
+                </Billboard>
+            )}
         </RigidBody>
     );
 }

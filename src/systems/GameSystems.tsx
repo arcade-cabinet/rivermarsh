@@ -4,6 +4,8 @@ import { getMemoryMonitor } from '@/utils/memoryMonitor';
 import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { AISystem } from '../ecs/systems/AISystem';
+import { CombatSystem } from '../ecs/systems/CombatSystem';
+import { PlayerSyncSystem } from '../ecs/systems/PlayerSyncSystem';
 import { BiomeSystem } from '../ecs/systems/BiomeSystem';
 import { CollisionSystem } from '../ecs/systems/CollisionSystem';
 import { ResourceSystem } from '../ecs/systems/ResourceSystem';
@@ -70,6 +72,8 @@ export function GameSystems() {
         }
 
         // Run ECS systems in order
+        CombatSystem();
+        PlayerSyncSystem();
         TimeSystem(delta);
         WeatherSystem(delta);
         WorldEventSystem();

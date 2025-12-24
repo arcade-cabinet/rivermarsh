@@ -69,31 +69,46 @@ function addObstacleAvoidance(_vehicle: NPCVehicle): void {
 }
 
 /**
- * Register all existing NPCs with Yuka
+ * Register all existing entities with Yuka
  */
-function registerExistingNPCs(): void {
+function registerExistingEntities(): void {
     const manager = getYukaManager();
     
+    // Register NPCs
     for (const entity of world.with('isNPC', 'transform', 'movement', 'species', 'steering')) {
         const vehicle = manager.registerNPC(entity, setupStateMachine);
         if (vehicle) {
             addObstacleAvoidance(vehicle);
         }
     }
+
+    // Register Player
+    for (const entity of world.with('isPlayer', 'transform', 'movement', 'species')) {
+        manager.registerNPC(entity);
+    }
 }
 
 /**
- * Check for new NPCs that need to be registered
+ * Register any new NPCs or the player with Yuka
  */
-function registerNewNPCs(): void {
+function registerNewEntities(): void {
     const manager = getYukaManager();
     
+    // Register NPCs
     for (const entity of world.with('isNPC', 'transform', 'movement', 'species', 'steering')) {
         if (entity.id && !manager.getVehicle(entity.id)) {
             const vehicle = manager.registerNPC(entity, setupStateMachine);
             if (vehicle) {
                 addObstacleAvoidance(vehicle);
             }
+        }
+    }
+
+    // Register Player
+    for (const entity of world.with('isPlayer', 'transform', 'movement', 'species')) {
+        if (entity.id && !manager.getVehicle(entity.id)) {
+            // Player doesn't need a state machine, it's controlled by the user
+            manager.registerNPC(entity);
         }
     }
 }
@@ -112,12 +127,12 @@ export function AISystem(delta: number): void {
     // Initialize on first run
     if (!initialized) {
         initYukaManager();
-        registerExistingNPCs();
+        registerExistingEntities();
         initialized = true;
     }
     
-    // Register any new NPCs added since last frame
-    registerNewNPCs();
+    // Register any new NPCs or player added since last frame
+    registerNewEntities();
     
     // Update Yuka (handles all steering behaviors and state machines)
     const manager = getYukaManager();
@@ -125,6 +140,18 @@ export function AISystem(delta: number): void {
     
     // Sync Yuka positions back to Miniplex entities
     manager.syncToMiniplex();
+
+    // Sync Player position TO Yuka (so NPCs can track it)
+    for (const entity of world.with('isPlayer', 'transform')) {
+        const vehicle = manager.getVehicle(entity.id!);
+        if (vehicle) {
+            vehicle.position.set(
+                entity.transform.position.x,
+                entity.transform.position.y,
+                entity.transform.position.z
+            );
+        }
+    }
     
     // Reset accumulator (consume one interval)
     aiAccumulator -= AI_UPDATE_INTERVAL;
@@ -136,7 +163,7 @@ export function AISystem(delta: number): void {
 export function initAISystem(): void {
     if (!initialized) {
         initYukaManager();
-        registerExistingNPCs();
+        registerExistingEntities();
         initialized = true;
     }
 }

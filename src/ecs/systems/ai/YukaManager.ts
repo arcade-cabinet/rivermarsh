@@ -221,7 +221,7 @@ class YukaManagerClass {
     syncToMiniplex(): void {
         for (const vehicle of this.vehicleMap.values()) {
             const entity = vehicle.miniplexEntity;
-            if (!entity || !entity.transform || !entity.movement) continue;
+            if (!entity || !entity.transform || !entity.movement || entity.isPlayer) continue;
 
             // Update position
             entity.transform.position.set(

@@ -22,7 +22,7 @@ import * as THREE from 'three';
 import { useEffect, useState } from 'react';
 
 // New Rivermarsh game components
-import { NPCManager, GameUI } from '@/components/game';
+import { NPCManager, GameUI, Combat } from '@/components/game';
 import { VirtualJoysticks, MobileActionButtons, GyroscopeCamera } from '@/components/mobile';
 
 // Initialize test hooks for E2E testing
@@ -58,6 +58,7 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
                 <Player />
                 <NPCs />
                 <Resources />
+                <Combat />
                 
                 {/* Rivermarsh NPC system - spawns story NPCs */}
                 {useRivermarshFeatures && <NPCManager />}
