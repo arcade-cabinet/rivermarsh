@@ -1,5 +1,6 @@
 
 import { useGameStore } from '@/stores/gameStore';
+import { useControlsStore } from '@/stores/useControlsStore';
 import nipplejs, { JoystickManager } from 'nipplejs';
 import { useEffect, useRef } from 'react';
 
@@ -14,20 +15,29 @@ export function useInput() {
         const keys: Record<string, number> = {
             arrowup: 0, arrowdown: 0, arrowleft: 0, arrowright: 0,
             w: 0, a: 0, s: 0, d: 0,
-            " ": 0
+            " ": 0, f: 0, e: 0
         };
 
         const updateInput = () => {
+            const setAction = useControlsStore.getState().setAction;
+            
             // Support both WASD and Arrow keys
             const x = (keys.arrowright || keys.d) - (keys.arrowleft || keys.a);
             const y = (keys.arrowup || keys.w) - (keys.arrowdown || keys.s);
             const jump = keys[" "] === 1;
+            const attack = keys["f"] === 1;
+            const interact = keys["e"] === 1;
 
             if (x !== 0 || y !== 0 || jump) {
                 setInput(x, y, true, jump);
             } else if (!joystickRef.current?.ids.length) {
                 setInput(0, 0, false, false);
             }
+
+            // Sync to controls store for systems that use it
+            setAction('jump', jump);
+            setAction('attack', attack);
+            setAction('interact', interact);
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {

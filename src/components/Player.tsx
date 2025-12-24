@@ -1,10 +1,14 @@
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
 import { useGameStore } from '@/stores/gameStore';
+import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useControlsStore } from '@/stores/useControlsStore';
+import { combatEvents } from '@/events/combatEvents';
+import { world } from '@/ecs/world';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, CapsuleCollider } from '@react-three/rapier';
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useCallback } from 'react';
 import * as THREE from 'three';
 import type { RapierRigidBody } from '@react-three/rapier';
 
@@ -37,11 +41,66 @@ export function Player() {
     const timeRef = useRef(0);
     const isGroundedRef = useRef(true);
     const lastJumpTime = useRef(0);
+    const attackCooldownRef = useRef(0);
+    const attackAnimTimerRef = useRef(0);
 
     const input = useGameStore((s) => s.input);
     const player = useGameStore((s) => s.player);
+    const playerStats = useRivermarsh((s) => s.player.stats);
     const updatePlayer = useGameStore((s) => s.updatePlayer);
     const damagePlayer = useGameStore.getState().damagePlayer;
+
+    // Register player in ECS world
+    useEffect(() => {
+        const entity = world.add({
+            isPlayer: true,
+            transform: {
+                position: new THREE.Vector3(0, 2, 0),
+                rotation: new THREE.Quaternion(),
+                scale: new THREE.Vector3(1, 1, 1),
+            },
+            movement: {
+                velocity: new THREE.Vector3(),
+                acceleration: new THREE.Vector3(),
+                maxSpeed: MAX_SPEED,
+                turnRate: 0.1,
+            },
+            species: {
+                id: 'player_otter',
+                name: 'Player',
+                type: 'player',
+                health: playerStats.health,
+                maxHealth: playerStats.maxHealth,
+                stamina: playerStats.stamina,
+                maxStamina: playerStats.maxStamina,
+                speed: MAX_SPEED,
+                state: 'idle',
+            },
+        });
+
+        return () => {
+            world.remove(entity);
+        };
+    }, []);
+
+    const performAttack = useCallback(() => {
+        if (attackCooldownRef.current > 0) return;
+
+        const damage = 10 + playerStats.level * 2;
+        const range = 2.5;
+        const position = meshRef.current.position;
+
+        combatEvents.emitPlayerAttack(position, range, damage);
+        attackCooldownRef.current = 0.5; // Cooldown in seconds
+        attackAnimTimerRef.current = 0.3; // Animation duration
+
+        const audioManager = getAudioManager();
+        if (audioManager) {
+            audioManager.playSound('collect', 0.5); // Use collect as placeholder for attack
+        }
+
+        // Trigger animation - we can use the state for this
+    }, [playerStats.level]);
 
     // Fur uniforms (shared, updated each frame)
     const furUniforms = useMemo(() => ({
@@ -54,6 +113,20 @@ export function Player() {
 
     useFrame((_, delta) => {
         if (!rigidBodyRef.current || !meshRef.current) return;
+
+        // Update cooldowns
+        if (attackCooldownRef.current > 0) {
+            attackCooldownRef.current -= delta;
+        }
+        if (attackAnimTimerRef.current > 0) {
+            attackAnimTimerRef.current -= delta;
+        }
+
+        // Check for attack input
+        const attackPressed = useControlsStore.getState().actions.attack;
+        if (attackPressed && attackCooldownRef.current <= 0) {
+            performAttack();
+        }
 
         const rb = rigidBodyRef.current;
         timeRef.current += delta;
@@ -162,7 +235,15 @@ export function Player() {
 
         // Procedural Animation
         if (jointsRef.current) {
-            animateOtter(jointsRef.current, speed, velocity.y, isGrounded, timeRef.current, player.stamina);
+            animateOtter(
+                jointsRef.current, 
+                speed, 
+                velocity.y, 
+                isGrounded, 
+                timeRef.current, 
+                player.stamina,
+                attackAnimTimerRef.current > 0
+            );
         }
     });
 
@@ -205,7 +286,8 @@ function animateOtter(
     verticalSpeed: number,
     isGrounded: boolean,
     time: number,
-    stamina: number
+    stamina: number,
+    isAttacking: boolean
 ) {
     const normalizedSpeed = Math.min(speed / MAX_SPEED, 1);
     const isRunning = stamina > 10 && normalizedSpeed > 0.7;
@@ -214,7 +296,14 @@ function animateOtter(
     const cycleSpeed = isRunning ? 15 : 10;
     const walkCycle = time * cycleSpeed;
 
-    if (isJumping) {
+    if (isAttacking) {
+        // Attack animation (pounce/swipe)
+        joints.armL.rotation.x = -2.5;
+        joints.armR.rotation.x = -2.5;
+        joints.torso.rotation.x = 0.4;
+        joints.head.rotation.x = -0.2;
+        joints.tail.rotation.x = 0.5;
+    } else if (isJumping) {
         // Jump animation
         const jumpPhase = verticalSpeed > 0 ? 'ascending' : 'descending';
         
