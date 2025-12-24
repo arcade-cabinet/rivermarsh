@@ -490,7 +490,7 @@ export const useRivermarsh = create<GameState>()(
 
     improveSkill: (skillType, experienceAmount) =>
       set((state) => {
-        let skill = { ...state.player.stats.skills[skillType] };
+        const skill = { ...state.player.stats.skills[skillType] };
         let remainingExp = experienceAmount;
         
         while (remainingExp > 0) {

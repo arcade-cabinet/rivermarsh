@@ -25,11 +25,16 @@ export function CombatSystem() {
                 if (npcId) {
                     useRivermarsh.getState().damageNPC(npcId, damage);
                     
+                    // Update ECS health to match store
+                    const updatedNPC = useRivermarsh.getState().npcs.find(n => n.id === npcId);
+                    if (updatedNPC && entity.species) {
+                        entity.species.health = updatedNPC.health ?? entity.species.health;
+                    }
+                    
                     // Emit damage event for visuals (floating numbers, particles)
                     combatEvents.emitDamageEnemy(npcId, damage, entity.transform!.position.clone());
                     
                     // Check if NPC died
-                    const updatedNPC = useRivermarsh.getState().npcs.find(n => n.id === npcId);
                     if (updatedNPC && updatedNPC.health === 0) {
                         // Dead! 
                         entity.species!.state = 'dead';

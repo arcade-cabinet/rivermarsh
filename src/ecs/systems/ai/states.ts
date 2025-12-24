@@ -16,6 +16,7 @@ import {
 } from 'yuka';
 import { world } from '../../world';
 import { NPCVehicle, getYukaManager } from './YukaManager';
+import { useRivermarsh } from '../../../stores/useRivermarsh';
 
 // State IDs
 export const STATE_IDLE = 'IDLE';
@@ -424,7 +425,7 @@ export class AttackState extends NPCState {
         // Update target position and deal damage
         if (entity.steering.target !== null) {
             const targetVehicle = getYukaManager().getVehicle(entity.steering.target);
-            if (targetVehicle && targetVehicle.miniplexEntity?.species) {
+            if (targetVehicle && targetVehicle.miniplexEntity) {
                 const targetEntity = targetVehicle.miniplexEntity;
                 this.targetPosition.copy(targetVehicle.position);
                 
@@ -434,30 +435,33 @@ export class AttackState extends NPCState {
                 if (distSq < 2.25) {
                     this.attackCooldown += 1 / 60;
                     
-                        if (this.attackCooldown >= this.ATTACK_INTERVAL) {
-                            this.attackCooldown = 0;
-                            
-                            // Deal damage with difficulty and event multipliers
-                            const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
-                            const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
-                            const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
-                            const bloodMoonMultiplier = isBloodMoon && entity.species.type === 'predator' ? 2.0 : 1.0;
-                            
-                            const finalDamage = this.ATTACK_DAMAGE * difficultyMultiplier * bloodMoonMultiplier;
+                    if (this.attackCooldown >= this.ATTACK_INTERVAL) {
+                        this.attackCooldown = 0;
+                        
+                        // Deal damage with difficulty and event multipliers
+                        const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
+                        const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
+                        const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
+                        const bloodMoonMultiplier = isBloodMoon && entity.species.type === 'predator' ? 2.0 : 1.0;
+                        
+                        const finalDamage = this.ATTACK_DAMAGE * difficultyMultiplier * bloodMoonMultiplier;
 
-                            if (targetEntity.species) {
-                                targetEntity.species.health = Math.max(
-                                    0,
-                                    targetEntity.species.health - finalDamage
-                                );
-                            
-                            // Target died
-                            if (targetEntity.species.health <= 0) {
-                                targetEntity.species.state = 'dead';
-                                entity.steering.target = null;
-                                vehicle.stateMachine?.changeTo(STATE_IDLE);
-                                return;
-                            }
+                        if (targetEntity.isPlayer) {
+                            // If target is player, use the game store
+                            useRivermarsh.getState().takeDamage(finalDamage);
+                        } else if (targetEntity.species) {
+                            targetEntity.species.health = Math.max(
+                                0,
+                                targetEntity.species.health - finalDamage
+                            );
+                        }
+                        
+                        // Target died check
+                        if (targetEntity.species && targetEntity.species.health <= 0) {
+                            targetEntity.species.state = 'dead';
+                            entity.steering.target = null;
+                            vehicle.stateMachine?.changeTo(STATE_IDLE);
+                            return;
                         }
                     }
                 } else {
