@@ -30,6 +30,10 @@ describe('HUD Component', () => {
                 maxHealth: 100,
                 stamina: 100,
                 maxStamina: 100,
+                level: 1,
+                experience: 0,
+                expToNext: 100,
+                damage: 10,
                 position: new THREE.Vector3(0, 0, 0),
                 rotation: 0,
                 speed: 0,
@@ -419,6 +423,23 @@ describe('HUD Component', () => {
             const healthBar = screen.getByTestId('health-bar-fill');
             // Should cap at 100%
             expect(healthBar).toHaveStyle({ width: '100%' });
+        });
+
+        it('should display XP bar with correct percentage', () => {
+            useGameStore.setState({
+                player: {
+                    ...useGameStore.getState().player,
+                    experience: 50,
+                    expToNext: 100,
+                    level: 5,
+                },
+            });
+
+            render(<HUD />);
+
+            const xpBar = screen.getByTestId('xp-bar-fill');
+            expect(xpBar).toHaveStyle({ width: '50%' });
+            expect(screen.getByText(/Level 5/i)).toBeInTheDocument();
         });
     });
 });
