@@ -25,6 +25,11 @@ interface PlayerState {
     maxStamina: number;
     invulnerable: boolean;
     invulnerableUntil: number;
+    mana: number;
+    maxMana: number;
+    swordLevel: number;
+    experience: number;
+    level: number;
 }
 
 interface RockData {
@@ -48,6 +53,7 @@ interface GameState {
     player: PlayerState;
     rocks: RockData[];
     gameOver: boolean;
+    bossBattleActive: boolean;
     nearbyResource: NearbyResource | null;
 
     // Actions
@@ -61,7 +67,11 @@ interface GameState {
     healPlayer: (amount: number) => void;
     restoreStamina: (amount: number) => void;
     consumeStamina: (amount: number) => void;
+    consumeMana: (amount: number) => boolean;
+    restoreMana: (amount: number) => void;
+    addExperience: (amount: number) => void;
     setGameOver: (gameOver: boolean) => void;
+    setBossBattleActive: (active: boolean) => void;
     setNearbyResource: (resource: NearbyResource | null) => void;
     respawn: () => void;
     saveGame: () => void;
@@ -87,9 +97,15 @@ export const useGameStore = create<GameState>((set) => ({
         maxStamina: 100,
         invulnerable: false,
         invulnerableUntil: 0,
+        mana: 50,
+        maxMana: 50,
+        swordLevel: 1,
+        experience: 0,
+        level: 1,
     },
     rocks: [],
     gameOver: false,
+    bossBattleActive: false,
     nearbyResource: null,
 
     setLoaded: (loaded) => set({ loaded }),
@@ -145,7 +161,60 @@ export const useGameStore = create<GameState>((set) => ({
             stamina: Math.max(0, state.player.stamina - amount),
         },
     })),
+    consumeMana: (amount) => {
+        let success = false;
+        set((state) => {
+            if (state.player.mana >= amount) {
+                success = true;
+                return {
+                    player: {
+                        ...state.player,
+                        mana: state.player.mana - amount,
+                    },
+                };
+            }
+            return state;
+        });
+        return success;
+    },
+    restoreMana: (amount) => set((state) => ({
+        player: {
+            ...state.player,
+            mana: Math.min(state.player.maxMana, state.player.mana + amount),
+        },
+    })),
+    addExperience: (amount) => set((state) => {
+        let newExp = state.player.experience + amount;
+        let newLevel = state.player.level;
+        const expToNext = newLevel * 100;
+        
+        if (newExp >= expToNext) {
+            newExp -= expToNext;
+            newLevel += 1;
+            // Level up effects
+            return {
+                player: {
+                    ...state.player,
+                    experience: newExp,
+                    level: newLevel,
+                    maxHealth: state.player.maxHealth + 20,
+                    health: state.player.maxHealth + 20,
+                    maxMana: state.player.maxMana + 10,
+                    mana: state.player.maxMana + 10,
+                    swordLevel: state.player.swordLevel + 1,
+                },
+            };
+        }
+        
+        return {
+            player: {
+                ...state.player,
+                experience: newExp,
+            },
+        };
+    }),
     setGameOver: (gameOver) => set({ gameOver }),
+    setBossBattleActive: (active) => set({ bossBattleActive: active }),
     setNearbyResource: (resource) => set({ nearbyResource: resource }),
     respawn: () => set((state) => ({
         player: {
@@ -153,6 +222,7 @@ export const useGameStore = create<GameState>((set) => ({
             position: new THREE.Vector3(0, 0, 0),
             health: state.player.maxHealth,
             stamina: state.player.maxStamina,
+            mana: state.player.maxMana,
             verticalSpeed: 0,
             isJumping: false,
         },

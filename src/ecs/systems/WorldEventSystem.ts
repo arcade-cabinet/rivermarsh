@@ -1,12 +1,41 @@
 import { world } from '../world';
 import { useAchievementStore } from '../../stores/useAchievementStore';
+import { BOSS_SPECIES } from '../data/species';
+import * as THREE from 'three';
 
 const POSSIBLE_EVENTS = [
     'blood_moon',
     'golden_hour',
     'meteor_shower',
-    'foggy_morning'
+    'foggy_morning',
+    'boss_battle'
 ];
+
+function spawnBoss() {
+    const bossTypes = Object.keys(BOSS_SPECIES) as Array<keyof typeof BOSS_SPECIES>;
+    const type = bossTypes[Math.floor(Math.random() * bossTypes.length)];
+    const bossData = BOSS_SPECIES[type];
+
+    console.log(`Spawning Boss: ${bossData.name}`);
+
+    world.add({
+        isBoss: true,
+        boss: {
+            name: bossData.name,
+            health: bossData.baseHealth,
+            maxHealth: bossData.baseHealth,
+            abilities: [...bossData.abilities],
+            cooldown: 0,
+            isBossBattleActive: false,
+            turn: 'player',
+        },
+        transform: {
+            position: new THREE.Vector3(0, 0, 0), // Default position, could be randomized
+            rotation: new THREE.Quaternion(),
+            scale: new THREE.Vector3(2, 2, 2), // Bosses are larger
+        },
+    });
+}
 
 export function WorldEventSystem() {
     for (const entity of world.with('worldEvents', 'time')) {
@@ -17,6 +46,12 @@ export function WorldEventSystem() {
         if (worldEvents.activeEvents.length > 0) {
             if (now - worldEvents.lastEventTime > worldEvents.eventDuration) {
                 console.log('World Event(s) Ended:', worldEvents.activeEvents);
+                
+                // If it was a boss battle that ended because the boss was defeated or escaped
+                if (worldEvents.activeEvents.includes('boss_battle')) {
+                    // Boss clean up happens in BossBattleSystem if defeated
+                }
+
                 worldEvents.activeEvents = [];
                 worldEvents.nextEventTime = now + 120000 + Math.random() * 300000; // Next event in 2-7 mins
                 worldEvents.lastEventTime = now;
@@ -37,6 +72,10 @@ export function WorldEventSystem() {
                 worldEvents.activeEvents = [newEvent];
                 worldEvents.lastEventTime = now;
                 console.log('World Event Started:', newEvent);
+                
+                if (newEvent === 'boss_battle') {
+                    spawnBoss();
+                }
                 
                 // Achievement for first world event
                 useAchievementStore.getState().unlockAchievement('first-steps'); // Example

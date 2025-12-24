@@ -201,6 +201,33 @@ export const PREDATOR_SPECIES = {
     },
 } as const;
 
+export const BOSS_SPECIES = {
+    hydra: {
+        name: 'Dread Hydra',
+        size: 'huge',
+        primaryColor: '#2e7d32',
+        baseHealth: 500,
+        damage: 40,
+        abilities: ['Multi-strike', 'Venom Breath'],
+    },
+    golem: {
+        name: 'Shadow Golem',
+        size: 'huge',
+        primaryColor: '#424242',
+        baseHealth: 800,
+        damage: 50,
+        abilities: ['Earthquake', 'Shadow Smash'],
+    },
+    drake: {
+        name: 'Chaos Drake',
+        size: 'huge',
+        primaryColor: '#c62828',
+        baseHealth: 600,
+        damage: 45,
+        abilities: ['Fireball', 'Chaos Wing'],
+    },
+} as const;
+
 export const PREY_SPECIES = {
     rabbit: {
         name: 'Cottontail Rabbit',

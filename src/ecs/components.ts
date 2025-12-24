@@ -99,6 +99,16 @@ export interface WorldEventComponent {
     lastEventTime: number;
 }
 
+export interface BossComponent {
+    name: string;
+    health: number;
+    maxHealth: number;
+    abilities: string[];
+    cooldown: number; // Turn-based cooldown
+    isBossBattleActive: boolean;
+    turn: 'player' | 'boss';
+}
+
 // The Entity Type
 export type Entity = {
     id?: number; // Miniplex auto-generates this, so it's optional when creating entities
@@ -108,6 +118,7 @@ export type Entity = {
     isWorld?: boolean; // Singleton for global state
     isNPC?: boolean;
     isResource?: boolean;
+    isBoss?: boolean;
 
     // Components
     transform?: TransformComponent;
@@ -115,6 +126,7 @@ export type Entity = {
     species?: SpeciesComponent;
     steering?: SteeringComponent;
     resource?: ResourceComponent;
+    boss?: BossComponent;
 
     // Global Singletons (usually on isWorld entity)
     time?: TimeOfDayComponent;

@@ -12,6 +12,7 @@ import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
 import { AchievementSystem } from '../ecs/systems/AchievementSystem';
+import { BossBattleSystem } from '../ecs/systems/BossBattleSystem';
 import { AudioSystem } from './AudioSystem';
 import { world } from '../ecs/world';
 
@@ -76,6 +77,7 @@ export function GameSystems() {
         BiomeSystem(playerPos.x, playerPos.z);
         SpawnSystem(playerPos);
         AISystem(delta);
+        BossBattleSystem();
         CollisionSystem(delta);
         ResourceSystem(playerPos, delta);
         AchievementSystem();
