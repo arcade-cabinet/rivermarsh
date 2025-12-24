@@ -1,11 +1,15 @@
 import { world } from '../world';
 import { useAchievementStore } from '../../stores/useAchievementStore';
+import { useGameStore } from '../../stores/gameStore';
+import { useRivermarsh } from '../../stores/useRivermarsh';
+import { BOSSES } from '../data/bosses';
 
 const POSSIBLE_EVENTS = [
     'blood_moon',
     'golden_hour',
     'meteor_shower',
-    'foggy_morning'
+    'foggy_morning',
+    'boss_encounter'
 ];
 
 export function WorldEventSystem() {
@@ -38,6 +42,10 @@ export function WorldEventSystem() {
                 worldEvents.lastEventTime = now;
                 console.log('World Event Started:', newEvent);
                 
+                if (newEvent === 'boss_encounter') {
+                    triggerBossEncounter();
+                }
+
                 // Achievement for first world event
                 useAchievementStore.getState().unlockAchievement('first-steps'); // Example
             } else {
@@ -58,4 +66,48 @@ export function WorldEventSystem() {
             time.fogDensity = 0.15; // Very thick fog
         }
     }
+}
+
+import { useRivermarsh } from '../../stores/useRivermarsh';
+
+function triggerBossEncounter() {
+    const { setMode: setGameMode, setActiveBossId, player } = useGameStore.getState();
+    const { setGameMode: setRivermarshMode } = useRivermarsh.getState();
+    
+    // Pick a boss based on player level
+    const bossTypes: ('dread_hydra' | 'shadow_golem' | 'chaos_drake')[] = ['dread_hydra', 'shadow_golem', 'chaos_drake'];
+    const bossType = bossTypes[Math.min(player.level - 1, bossTypes.length - 1)];
+    const bossData = BOSSES[bossType];
+
+    // Create boss entity
+    const bossEntity = world.add({
+        isBoss: true,
+        species: {
+            id: `boss_${Date.now()}`,
+            name: bossData.name,
+            type: 'predator',
+            health: bossData.health,
+            maxHealth: bossData.health,
+            stamina: 100,
+            maxStamina: 100,
+            speed: 0,
+            state: 'idle'
+        },
+        boss: {
+            type: bossType,
+            specialAbilityCooldown: 3,
+            phase: 1,
+            rewards: bossData.rewards
+        },
+        combat: {
+            turn: 'player',
+            playerCooldown: 0,
+            bossCooldown: 0
+        }
+    });
+
+    setGameMode('boss_battle');
+    setRivermarshMode('boss_battle');
+    setActiveBossId(bossEntity.id!);
+    console.log(`BOSS ENCOUNTER: ${bossData.name} appeared!`);
 }

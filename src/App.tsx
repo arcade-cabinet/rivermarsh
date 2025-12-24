@@ -9,6 +9,7 @@ import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
 import { EventOverlay } from '@/components/ui/EventOverlay';
 import { Loader } from '@/components/ui/Loader';
 import { Tutorial } from '@/components/ui/Tutorial';
+import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { World } from '@/components/World';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { GameSystems } from '@/systems/GameSystems';
@@ -114,7 +115,7 @@ export default function App() {
                 )}
             </Canvas>
 
-            {gameMode === 'exploration' && (
+            {(gameMode === 'exploration' || gameMode === 'boss_battle') && (
                 <>
                     {/* Mobile controls - virtual joystick and action buttons */}
                     {constraints.isMobile && (
@@ -136,6 +137,7 @@ export default function App() {
                     <GameOver />
                     <Loader />
                     <Tutorial />
+                    <BossBattleOverlay />
                 </>
             )}
         </>

@@ -50,6 +50,9 @@ export interface SpeciesComponent {
     maxHealth: number;
     stamina: number;
     maxStamina: number;
+    mana?: number;
+    maxMana?: number;
+    level?: number;
     speed: number;
     state: 'idle' | 'walk' | 'run' | 'flee' | 'chase' | 'attack' | 'dead';
 }
@@ -115,6 +118,24 @@ export interface WorldEventComponent {
     lastEventTime: number;
 }
 
+export interface BossComponent {
+    type: 'dread_hydra' | 'shadow_golem' | 'chaos_drake';
+    heads?: number; // for hydra
+    specialAbilityCooldown: number;
+    phase: number;
+    rewards: {
+        gold: number;
+        experience: number;
+    };
+}
+
+export interface CombatComponent {
+    turn: 'player' | 'boss';
+    playerCooldown: number;
+    bossCooldown: number;
+    lastAction?: string;
+}
+
 // The Entity Type
 export type Entity = {
     id?: number; // Miniplex auto-generates this, so it's optional when creating entities
@@ -124,6 +145,7 @@ export type Entity = {
     isWorld?: boolean; // Singleton for global state
     isNPC?: boolean;
     isResource?: boolean;
+    isBoss?: boolean;
 
     // Components
     transform?: TransformComponent;
@@ -133,6 +155,8 @@ export type Entity = {
     enemyEffect?: EnemyEffectComponent;
     steering?: SteeringComponent;
     resource?: ResourceComponent;
+    boss?: BossComponent;
+    combat?: CombatComponent;
 
     // Global Singletons (usually on isWorld entity)
     time?: TimeOfDayComponent;

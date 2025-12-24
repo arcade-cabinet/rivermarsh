@@ -24,6 +24,12 @@ interface PlayerState {
     stamina: number;
     maxStamina: number;
     speedMultiplier: number;
+    mana: number;
+    maxMana: number;
+    level: number;
+    gold: number;
+    experience: number;
+    expToNext: number;
     invulnerable: boolean;
     invulnerableUntil: number;
 }
@@ -41,14 +47,18 @@ interface NearbyResource {
     type: string;
 }
 
+export type GameMode = 'exploration' | 'boss_battle';
+
 interface GameState {
     loaded: boolean;
     time: number;
     difficulty: DifficultyLevel;
+    mode: GameMode;
     input: InputState;
     player: PlayerState;
     rocks: RockData[];
     gameOver: boolean;
+    activeBossId: number | null;
     nearbyResource: NearbyResource | null;
     score: number;
     distance: number;
@@ -57,6 +67,7 @@ interface GameState {
     setLoaded: (loaded: boolean) => void;
     updateTime: (delta: number) => void;
     setDifficulty: (difficulty: DifficultyLevel) => void;
+    setMode: (mode: GameMode) => void;
     setInput: (x: number, y: number, active: boolean, jump: boolean) => void;
     updatePlayer: (updates: Partial<PlayerState>) => void;
     setRocks: (rocks: RockData[]) => void;
@@ -64,7 +75,12 @@ interface GameState {
     healPlayer: (amount: number) => void;
     restoreStamina: (amount: number) => void;
     consumeStamina: (amount: number) => void;
+    useMana: (amount: number) => boolean;
+    restoreMana: (amount: number) => void;
+    addExperience: (amount: number) => void;
+    addGold: (amount: number) => void;
     setGameOver: (gameOver: boolean) => void;
+    setActiveBossId: (id: number | null) => void;
     setNearbyResource: (resource: NearbyResource | null) => void;
     addScore: (amount: number) => void;
     setDistance: (distance: number) => void;
@@ -77,6 +93,7 @@ export const useGameStore = create<GameState>((set) => ({
     loaded: false,
     time: 0,
     difficulty: 'normal',
+    mode: 'exploration',
     input: { direction: { x: 0, y: 0 }, active: false, jump: false },
     player: {
         position: new THREE.Vector3(0, 0, 0),
@@ -91,11 +108,18 @@ export const useGameStore = create<GameState>((set) => ({
         stamina: 100,
         maxStamina: 100,
         speedMultiplier: 1.0,
+        mana: 20,
+        maxMana: 20,
+        level: 1,
+        gold: 0,
+        experience: 0,
+        expToNext: 100,
         invulnerable: false,
         invulnerableUntil: 0,
     },
     rocks: [],
     gameOver: false,
+    activeBossId: null,
     nearbyResource: null,
     score: 0,
     distance: 0,
@@ -103,6 +127,7 @@ export const useGameStore = create<GameState>((set) => ({
     setLoaded: (loaded) => set({ loaded }),
     updateTime: (delta) => set((state) => ({ time: state.time + delta })),
     setDifficulty: (difficulty) => set({ difficulty }),
+    setMode: (mode) => set({ mode }),
     setInput: (x, y, active, jump) => set({ input: { direction: { x, y }, active, jump } }),
     updatePlayer: (updates) => set((state) => ({
         player: { ...state.player, ...updates },
@@ -153,7 +178,59 @@ export const useGameStore = create<GameState>((set) => ({
             stamina: Math.max(0, state.player.stamina - amount),
         },
     })),
+    useMana: (amount) => {
+        let success = false;
+        set((state) => {
+            if (state.player.mana >= amount) {
+                success = true;
+                return {
+                    player: {
+                        ...state.player,
+                        mana: state.player.mana - amount,
+                    },
+                };
+            }
+            return state;
+        });
+        return success;
+    },
+    restoreMana: (amount) => set((state) => ({
+        player: {
+            ...state.player,
+            mana: Math.min(state.player.maxMana, state.player.mana + amount),
+        },
+    })),
+    addExperience: (amount) => set((state) => {
+        let { experience, level, expToNext, maxHealth, maxMana } = state.player;
+        experience += amount;
+        while (experience >= expToNext) {
+            experience -= expToNext;
+            level += 1;
+            expToNext = Math.floor(expToNext * 1.5);
+            maxHealth += 20;
+            maxMana += 10;
+        }
+        return {
+            player: {
+                ...state.player,
+                experience,
+                level,
+                expToNext,
+                maxHealth,
+                maxMana,
+                health: maxHealth, // Heal on level up
+                mana: maxMana,
+            },
+        };
+    }),
+    addGold: (amount) => set((state) => ({
+        player: {
+            ...state.player,
+            gold: state.player.gold + amount,
+        },
+    })),
     setGameOver: (gameOver) => set({ gameOver }),
+    setActiveBossId: (id) => set({ activeBossId: id }),
     setNearbyResource: (resource) => set({ nearbyResource: resource }),
     addScore: (amount) => set((state) => ({ score: state.score + amount })),
     setDistance: (distance) => set({ distance }),
@@ -163,12 +240,14 @@ export const useGameStore = create<GameState>((set) => ({
             position: new THREE.Vector3(0, 0, 0),
             health: state.player.maxHealth,
             stamina: state.player.maxStamina,
+            mana: state.player.maxMana,
             verticalSpeed: 0,
             isJumping: false,
         },
         gameOver: false,
         score: 0,
         distance: 0,
+        mode: 'exploration',
     })),
     saveGame: () => {
         const state = useGameStore.getState();
@@ -176,6 +255,13 @@ export const useGameStore = create<GameState>((set) => ({
             position: state.player.position,
             health: state.player.health,
             stamina: state.player.stamina,
+            mana: state.player.mana,
+            maxMana: state.player.maxMana,
+            experience: state.player.experience,
+            level: state.player.level,
+            gold: state.player.gold,
+            expToNext: state.player.expToNext,
+            maxHealth: state.player.maxHealth,
         });
     },
     loadGame: () => {
@@ -188,6 +274,13 @@ export const useGameStore = create<GameState>((set) => ({
                 position: new THREE.Vector3(...saveData.player.position),
                 health: saveData.player.health,
                 stamina: saveData.player.stamina,
+                mana: saveData.player.mana || state.player.mana,
+                maxMana: saveData.player.maxMana || state.player.maxMana,
+                experience: saveData.player.experience || state.player.experience,
+                level: saveData.player.level || state.player.level,
+                gold: saveData.player.gold || state.player.gold,
+                expToNext: saveData.player.expToNext || state.player.expToNext,
+                maxHealth: saveData.player.maxHealth || state.player.maxHealth,
             },
         }));
     },
