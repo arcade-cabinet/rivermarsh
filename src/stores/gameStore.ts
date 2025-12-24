@@ -49,6 +49,8 @@ interface GameState {
     rocks: RockData[];
     gameOver: boolean;
     nearbyResource: NearbyResource | null;
+    score: number;
+    distance: number;
 
     // Actions
     setLoaded: (loaded: boolean) => void;
@@ -63,6 +65,8 @@ interface GameState {
     consumeStamina: (amount: number) => void;
     setGameOver: (gameOver: boolean) => void;
     setNearbyResource: (resource: NearbyResource | null) => void;
+    addScore: (amount: number) => void;
+    setDistance: (distance: number) => void;
     respawn: () => void;
     saveGame: () => void;
     loadGame: () => void;
@@ -91,6 +95,8 @@ export const useGameStore = create<GameState>((set) => ({
     rocks: [],
     gameOver: false,
     nearbyResource: null,
+    score: 0,
+    distance: 0,
 
     setLoaded: (loaded) => set({ loaded }),
     updateTime: (delta) => set((state) => ({ time: state.time + delta })),
@@ -147,6 +153,8 @@ export const useGameStore = create<GameState>((set) => ({
     })),
     setGameOver: (gameOver) => set({ gameOver }),
     setNearbyResource: (resource) => set({ nearbyResource: resource }),
+    addScore: (amount) => set((state) => ({ score: state.score + amount })),
+    setDistance: (distance) => set({ distance }),
     respawn: () => set((state) => ({
         player: {
             ...state.player,
@@ -157,6 +165,8 @@ export const useGameStore = create<GameState>((set) => ({
             isJumping: false,
         },
         gameOver: false,
+        score: 0,
+        distance: 0,
     })),
     saveGame: () => {
         const state = useGameStore.getState();

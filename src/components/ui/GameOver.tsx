@@ -23,10 +23,11 @@ export function GameOver() {
         }}>
             <h1 style={{
                 color: '#ef4444',
-                fontSize: '3em',
+                fontSize: '4em',
                 margin: 0,
                 fontFamily: 'Cinzel, serif',
-                textShadow: '0 4px 20px rgba(239,68,68,0.5)',
+                textShadow: '0 0 30px rgba(239,68,68,0.6)',
+                letterSpacing: '8px',
                 animation: 'fadeIn 0.5s ease',
             }}>
                 GAME OVER
@@ -34,9 +35,11 @@ export function GameOver() {
 
             <p style={{
                 color: '#ccc',
-                fontSize: '1.2em',
+                fontSize: '1.4em',
                 margin: '20px 0 40px 0',
                 fontFamily: 'Cinzel, serif',
+                letterSpacing: '2px',
+                opacity: 0.8,
             }}>
                 You have fallen in the Riverlands
             </p>
@@ -44,26 +47,28 @@ export function GameOver() {
             <button
                 onClick={respawn}
                 style={{
-                    padding: '15px 40px',
+                    padding: '15px 50px',
                     fontSize: '1.2em',
                     fontFamily: 'Cinzel, serif',
                     color: '#fff',
-                    background: '#d4af37',
-                    border: 'none',
-                    borderRadius: '8px',
+                    background: 'rgba(212, 175, 55, 0.2)',
+                    border: '2px solid #d4af37',
+                    borderRadius: '4px',
                     cursor: 'pointer',
                     textTransform: 'uppercase',
-                    letterSpacing: '2px',
-                    boxShadow: '0 4px 20px rgba(212,175,55,0.3)',
+                    letterSpacing: '4px',
                     transition: 'all 0.3s ease',
+                    pointerEvents: 'auto',
                 }}
                 onMouseEnter={(e) => {
-                    e.currentTarget.style.background = '#e5c048';
+                    e.currentTarget.style.background = '#d4af37';
                     e.currentTarget.style.transform = 'scale(1.05)';
+                    e.currentTarget.style.boxShadow = '0 0 20px rgba(212,175,55,0.4)';
                 }}
                 onMouseLeave={(e) => {
-                    e.currentTarget.style.background = '#d4af37';
+                    e.currentTarget.style.background = 'rgba(212, 175, 55, 0.2)';
                     e.currentTarget.style.transform = 'scale(1)';
+                    e.currentTarget.style.boxShadow = 'none';
                 }}
             >
                 Respawn
