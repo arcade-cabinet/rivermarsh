@@ -8,16 +8,34 @@ import { HUD } from '../HUD';
 // Mock the ECS world
 vi.mock('@/ecs/world', () => ({
     world: {
-        with: vi.fn(() => ({
-            *[Symbol.iterator]() {
-                yield {
-                    time: {
-                        hour: 8,
-                        phase: 'day',
+        with: vi.fn((type) => {
+            if (type === 'time') {
+                return {
+                    *[Symbol.iterator]() {
+                        yield {
+                            time: {
+                                hour: 8,
+                                phase: 'day',
+                            },
+                        };
                     },
                 };
-            },
-        })),
+            }
+            if (type === 'weather') {
+                return {
+                    *[Symbol.iterator]() {
+                        yield {
+                            weather: {
+                                current: 'clear',
+                            },
+                        };
+                    },
+                };
+            }
+            return {
+                *[Symbol.iterator]() { },
+            };
+        }),
     },
 }));
 

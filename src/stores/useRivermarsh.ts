@@ -98,10 +98,17 @@ export interface GameState {
     messages: string[];
     currentIndex: number;
   } | null;
+  settings: {
+    soundEnabled: boolean;
+    musicEnabled: boolean;
+    volume: number;
+    showHelp: boolean;
+  };
   
   updatePlayerPosition: (position: [number, number, number]) => void;
   updatePlayerRotation: (rotation: [number, number]) => void;
   updatePlayerStats: (stats: Partial<PlayerStats>) => void;
+  updateSettings: (settings: Partial<GameState['settings']>) => void;
   addInventoryItem: (item: InventoryItem) => void;
   removeInventoryItem: (itemId: string, quantity: number) => void;
   equipItem: (item: InventoryItem) => void;
@@ -185,6 +192,12 @@ export const useRivermarsh = create<GameState>()(
     showQuestLog: false,
     showShop: false,
     activeDialogue: null,
+    settings: {
+      soundEnabled: true,
+      musicEnabled: true,
+      volume: 0.8,
+      showHelp: true,
+    },
 
     updatePlayerPosition: (position) =>
       set((state) => ({
@@ -202,6 +215,11 @@ export const useRivermarsh = create<GameState>()(
           ...state.player,
           stats: { ...state.player.stats, ...stats },
         },
+      })),
+
+    updateSettings: (settings) =>
+      set((state) => ({
+        settings: { ...state.settings, ...settings },
       })),
 
     addInventoryItem: (item) =>
@@ -595,6 +613,7 @@ export const useRivermarsh = create<GameState>()(
           completedQuests: state.player.completedQuests,
           factionReputation: state.player.factionReputation,
         },
+        settings: state.settings,
       }),
     }
   )

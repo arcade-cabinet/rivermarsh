@@ -1,25 +1,41 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
-import { useEffect, useRef, useState } from 'react';
+import { useRivermarsh } from '@/stores/useRivermarsh';
+import { useEffect, useState } from 'react';
+import { PauseMenu } from './PauseMenu';
+import { SettingsPanel } from './SettingsPanel';
 
 export function HUD() {
+    // Game loop stats
     const health = useGameStore((s) => s.player.health);
     const maxHealth = useGameStore((s) => s.player.maxHealth);
     const stamina = useGameStore((s) => s.player.stamina);
     const maxStamina = useGameStore((s) => s.player.maxStamina);
     const nearbyResource = useGameStore((s) => s.nearbyResource);
+    const score = useGameStore((s) => s.score);
+    const distance = useGameStore((s) => s.distance);
+    
+    // RPG stats
+    const level = useRivermarsh((s) => s.player.stats.level);
+    const gold = useRivermarsh((s) => s.player.stats.gold);
+    const experience = useRivermarsh((s) => s.player.stats.experience);
+    const showHelpSetting = useRivermarsh((s) => s.settings.showHelp);
+    const xpToNext = level * 100;
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
+    const [weatherDisplay, setWeatherDisplay] = useState('clear');
     const [isPaused, setIsPaused] = useState(false);
-    const resumeButtonRef = useRef<HTMLButtonElement>(null);
+    const [showSettings, setShowSettings] = useState(false);
 
-    // Clamp percentages to 0-100 range to handle edge cases
+    // Clamp percentages
     const healthPercent = Math.min(100, Math.max(0, (health / maxHealth) * 100));
     const staminaPercent = Math.min(100, Math.max(0, (stamina / maxStamina) * 100));
+    const xpPercent = Math.min(100, Math.max(0, (experience / xpToNext) * 100));
 
-    // Update time display from ECS
+    // Update time and weather from ECS
     useEffect(() => {
         const interval = setInterval(() => {
+            // Time
             for (const { time } of ecsWorld.with('time')) {
                 setTimeDisplay({
                     hour: Math.floor(time.hour),
@@ -27,11 +43,17 @@ export function HUD() {
                 });
                 break;
             }
+            // Weather
+            for (const { weather } of ecsWorld.with('weather')) {
+                if (weather && weather.current) {
+                    setWeatherDisplay(weather.current);
+                }
+                break;
+            }
         }, 100);
         return () => clearInterval(interval);
     }, []);
 
-    // Format time as "8:00 AM - Day"
     const formatTime = () => {
         const { hour, phase } = timeDisplay;
         const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
@@ -40,7 +62,18 @@ export function HUD() {
         return `${displayHour}:00 ${period} - ${phaseCapitalized}`;
     };
 
-    // Handle pause menu - use functional update to avoid dependency
+    const getWeatherIcon = (weather: string) => {
+        switch (weather) {
+            case 'clear': return '☀️';
+            case 'rain': return '🌧️';
+            case 'fog': return '🌫️';
+            case 'snow': return '❄️';
+            case 'storm': return '⛈️';
+            case 'sandstorm': return '🌪️';
+            default: return '☀️';
+        }
+    };
+
     useEffect(() => {
         const handleKeyPress = (e: KeyboardEvent) => {
             if (e.key === 'Escape') {
@@ -49,42 +82,7 @@ export function HUD() {
         };
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, []); // Empty deps - listener only added once
-
-    const handleResume = () => {
-        setIsPaused(false);
-    };
-
-    // Reusable button style and handlers
-    const menuButtonStyle: React.CSSProperties = {
-        padding: '12px 40px',
-        fontSize: '16px',
-        fontFamily: 'sans-serif',
-        fontWeight: 'bold',
-        color: '#fff',
-        background: 'rgba(255,255,255,0.1)',
-        border: '2px solid rgba(255,255,255,0.5)',
-        borderRadius: '4px',
-        cursor: 'pointer',
-        transition: 'all 0.2s ease',
-    };
-
-    const handleButtonHover = (e: React.MouseEvent<HTMLButtonElement>, isEntering: boolean) => {
-        if (isEntering) {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.2)';
-            e.currentTarget.style.borderColor = '#fff';
-        } else {
-            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
-            e.currentTarget.style.borderColor = 'rgba(255,255,255,0.5)';
-        }
-    };
-
-    // Focus management - focus Resume button when pause menu opens
-    useEffect(() => {
-        if (isPaused && resumeButtonRef.current) {
-            resumeButtonRef.current.focus();
-        }
-    }, [isPaused]);
+    }, []);
 
     return (
         <div style={{
@@ -93,231 +91,172 @@ export function HUD() {
             left: 0,
             width: '100%',
             height: '100%',
-            pointerEvents: isPaused ? 'auto' : 'none',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between',
+            pointerEvents: 'none',
             zIndex: 100,
+            fontFamily: 'Cinzel, serif',
         }}>
-            {/* Top HUD */}
-            <div style={{
-                padding: '20px',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-start',
-            }}>
-                {/* Title */}
-                <div style={{
-                    textAlign: 'left',
-                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-                }}>
-                    <h1 style={{
-                        color: '#d4af37',
-                        fontSize: '1.5em',
-                        margin: 0,
-                        letterSpacing: '3px',
-                        textTransform: 'uppercase',
-                        fontFamily: 'Cinzel, serif',
-                    }}>
-                        Rivermarsh
-                    </h1>
-                    <p style={{
-                        color: '#ccc',
-                        fontSize: '0.8em',
-                        opacity: 0.7,
-                        margin: '5px 0 0 0',
-                        fontFamily: 'Cinzel, serif',
-                    }}>
-                        Explore the Riverlands
-                    </p>
-                </div>
-
-                {/* Time Display - Top Right */}
-                <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '16px',
-                    textAlign: 'right',
-                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
-                }}>
-                    <div style={{
-                        color: '#fff',
-                        fontSize: '1.2em',
-                        fontFamily: 'sans-serif',
-                        fontWeight: 'bold',
-                    }}>
-                        {formatTime()}
-                    </div>
-                    <button
-                        onClick={() => setIsPaused(true)}
-                        aria-label="Pause game"
-                        style={{
-                            background: 'rgba(0, 0, 0, 0.4)',
-                            border: '1px solid rgba(255, 255, 255, 0.4)',
-                            borderRadius: '50%',
-                            width: '44px',
-                            height: '44px',
-                            fontSize: '1.2em',
-                            cursor: 'pointer',
-                            color: '#fff',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            transition: 'all 0.2s ease',
-                            pointerEvents: 'auto',
-                        }}
-                        onMouseEnter={(e) => {
-                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.2)';
-                            e.currentTarget.style.borderColor = '#fff';
-                        }}
-                        onMouseLeave={(e) => {
-                            e.currentTarget.style.background = 'rgba(0, 0, 0, 0.4)';
-                            e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.4)';
-                        }}
-                    >
-                        ⏸
-                    </button>
-                </div>
-            </div>
-
-            {/* Health and Stamina Bars */}
+            {/* Top Left: Player Level & Gold */}
             <div style={{
                 position: 'absolute',
-                top: '80px',
+                top: '20px',
                 left: '20px',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '8px',
+                gap: '5px',
+                pointerEvents: 'auto',
             }}>
-                {/* Health Bar */}
-                <div
-                    data-testid="health-bar"
-                    role="progressbar"
-                    aria-label="Health"
-                    aria-valuenow={Math.round(health)}
-                    aria-valuemin={0}
-                    aria-valuemax={maxHealth}
-                >
-                    <div style={{
-                        fontSize: '10px',
-                        color: '#fff',
-                        marginBottom: '4px',
-                        textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-                        fontFamily: 'sans-serif',
-                        textTransform: 'uppercase',
-                        letterSpacing: '1px',
-                    }}>
-                        Health
+                <div style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(4px)',
+                    padding: '8px 15px',
+                    borderRadius: '4px',
+                    borderLeft: '4px solid #d4af37',
+                    color: '#fff',
+                }}>
+                    <div style={{ fontSize: '12px', color: '#d4af37', fontWeight: 'bold' }}>LVL {level}</div>
+                    <div style={{ width: '120px', height: '4px', background: 'rgba(255,255,255,0.2)', marginTop: '4px', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${xpPercent}%`, height: '100%', background: '#fff', transition: 'width 0.3s' }} />
                     </div>
-                    <div style={{
-                        width: '200px',
-                        height: '20px',
-                        background: 'rgba(0,0,0,0.5)',
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        borderRadius: '4px',
-                        overflow: 'hidden',
-                    }}>
-                        <div
+                </div>
+                <div style={{
+                    background: 'rgba(0,0,0,0.6)',
+                    backdropFilter: 'blur(4px)',
+                    padding: '5px 15px',
+                    borderRadius: '4px',
+                    color: '#ffd700',
+                    fontWeight: 'bold',
+                    fontSize: '18px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                }}>
+                    💰 {gold.toLocaleString()}
+                </div>
+            </div>
+
+            {/* Top Right: Time, Weather, Pause */}
+            <div style={{
+                position: 'absolute',
+                top: '20px',
+                right: '20px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '15px',
+                pointerEvents: 'auto',
+            }}>
+                <div style={{
+                    textAlign: 'right',
+                    textShadow: '0 2px 10px rgba(0,0,0,0.8)',
+                    color: '#fff',
+                }}>
+                    <div style={{ fontSize: '1.1em', fontWeight: 'bold' }}>{formatTime()}</div>
+                    <div style={{ fontSize: '0.9em', opacity: 0.8 }}>
+                        {getWeatherIcon(weatherDisplay)} {weatherDisplay.toUpperCase()}
+                    </div>
+                </div>
+                <button
+                    onClick={() => setIsPaused(true)}
+                    style={{
+                        background: 'rgba(0, 0, 0, 0.4)',
+                        border: '1px solid rgba(255, 255, 255, 0.4)',
+                        borderRadius: '50%',
+                        width: '44px',
+                        height: '44px',
+                        fontSize: '1.2em',
+                        cursor: 'pointer',
+                        color: '#fff',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        transition: 'all 0.2s ease',
+                    }}
+                >
+                    ⏸
+                </button>
+            </div>
+
+            {/* Bottom Left: Health & Stamina */}
+            <div style={{
+                position: 'absolute',
+                bottom: '40px',
+                left: '20px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '12px',
+            }}>
+                {/* Health */}
+                <div>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Health</span>
+                        <span>{Math.round(health)} / {maxHealth}</span>
+                    </div>
+                    <div style={{ width: '250px', height: '12px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div 
                             data-testid="health-bar-fill"
-                            style={{
-                                width: `${healthPercent}%`,
-                                height: '100%',
-                                background: healthPercent > 50 ? '#4ade80' : healthPercent > 25 ? '#fbbf24' : '#ef4444',
-                                transition: 'width 0.3s ease, background 0.3s ease',
-                            }}
+                            style={{ width: `${healthPercent}%`, height: '100%', background: healthPercent > 50 ? '#4ade80' : healthPercent > 25 ? '#fbbf24' : '#ef4444', transition: 'width 0.3s' }} 
                         />
                     </div>
                 </div>
-
-                {/* Stamina Bar */}
-                <div
-                    data-testid="stamina-bar"
-                    role="progressbar"
-                    aria-label="Stamina"
-                    aria-valuenow={Math.round(stamina)}
-                    aria-valuemin={0}
-                    aria-valuemax={maxStamina}
-                >
-                    <div style={{
-                        fontSize: '10px',
-                        color: '#fff',
-                        marginBottom: '4px',
-                        textShadow: '0 1px 3px rgba(0,0,0,0.8)',
-                        fontFamily: 'sans-serif',
-                        textTransform: 'uppercase',
-                        letterSpacing: '1px',
-                    }}>
-                        Stamina
+                {/* Stamina */}
+                <div>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Stamina</span>
+                        <span>{Math.round(stamina)} / {maxStamina}</span>
                     </div>
-                    <div style={{
-                        width: '200px',
-                        height: '20px',
-                        background: 'rgba(0,0,0,0.5)',
-                        border: '2px solid rgba(255,255,255,0.3)',
-                        borderRadius: '4px',
-                        overflow: 'hidden',
-                    }}>
-                        <div
+                    <div style={{ width: '250px', height: '8px', background: 'rgba(0,0,0,0.5)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div 
                             data-testid="stamina-bar-fill"
-                            style={{
-                                width: `${staminaPercent}%`,
-                                height: '100%',
-                                background: '#60a5fa',
-                                transition: 'width 0.3s ease',
-                            }}
+                            style={{ width: `${staminaPercent}%`, height: '100%', background: '#60a5fa', transition: 'width 0.3s' }} 
                         />
                     </div>
                 </div>
             </div>
 
-            {/* Resource Collection Prompt */}
-            {nearbyResource && (
-                <div style={{
-                    position: 'absolute',
-                    bottom: '120px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    background: 'rgba(0,0,0,0.8)',
-                    border: '2px solid rgba(255,255,255,0.5)',
-                    borderRadius: '8px',
-                    padding: '12px 20px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '12px',
-                    animation: 'fadeIn 0.3s ease',
-                }}>
-                    <div style={{ fontSize: '24px' }}>{nearbyResource.icon}</div>
-                    <div>
-                        <div style={{
-                            color: '#fff',
-                            fontSize: '14px',
-                            fontWeight: 'bold',
-                            marginBottom: '4px',
-                        }}>
-                            {nearbyResource.name}
-                        </div>
-                        <div style={{
-                            color: '#aaa',
-                            fontSize: '11px',
-                        }}>
-                            Tap to collect
+            {/* Bottom Right: Score & Distance */}
+            <div style={{
+                position: 'absolute',
+                bottom: '40px',
+                right: '20px',
+                textAlign: 'right',
+                color: '#fff',
+            }}>
+                <div style={{ fontSize: '2em', fontWeight: 'bold', margin: 0 }}>{Math.floor(score).toLocaleString()}</div>
+                <div style={{ fontSize: '1em', opacity: 0.7, color: '#60a5fa' }}>{Math.floor(distance)}m</div>
+            </div>
+
+            {/* Center Bottom: Help Text / Nearby Resource */}
+            <div style={{
+                position: 'absolute',
+                bottom: '20px',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                textAlign: 'center',
+            }}>
+                {nearbyResource ? (
+                    <div style={{
+                        background: 'rgba(0,0,0,0.8)',
+                        border: '2px solid #d4af37',
+                        borderRadius: '8px',
+                        padding: '10px 20px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        marginBottom: '20px',
+                        pointerEvents: 'auto',
+                    }}>
+                        <span style={{ fontSize: '24px' }}>{nearbyResource.icon}</span>
+                        <div style={{ textAlign: 'left' }}>
+                            <div style={{ color: '#fff', fontWeight: 'bold' }}>{nearbyResource.name}</div>
+                            <div style={{ color: '#d4af37', fontSize: '12px' }}>Tap to collect</div>
                         </div>
                     </div>
-                </div>
-            )}
-
-            {/* Tutorial hint - Mobile-first */}
-            <div style={{
-                paddingBottom: '30px',
-                textAlign: 'center',
-                color: 'rgba(255,255,255,0.4)',
-                fontFamily: 'sans-serif',
-                fontSize: '10px',
-                textTransform: 'uppercase',
-                letterSpacing: '1px',
-                animation: 'pulse 2s infinite',
-            }}>
-                Tap to Move • Tap to Jump • Tap ⏸ to Pause
+                ) : (
+                    showHelpSetting && (
+                        <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
+                            WASD: Move • Space: Jump • ESC: Pause
+                        </div>
+                    )
+                )}
             </div>
 
             {/* Danger Vignette */}
@@ -335,74 +274,25 @@ export function HUD() {
             )}
 
             {/* Pause Menu */}
-            {isPaused && (
-                <div 
-                    role="dialog"
-                    aria-modal="true"
-                    aria-labelledby="pause-menu-title"
-                    style={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        background: 'rgba(0,0,0,0.7)',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '20px',
-                    }}
-                >
-                    <h2 
-                        id="pause-menu-title"
-                        style={{
-                            color: '#fff',
-                            fontSize: '2em',
-                            margin: 0,
-                            fontFamily: 'Cinzel, serif',
-                            letterSpacing: '2px',
-                        }}
-                    >
-                        PAUSED
-                    </h2>
-                    <div style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '12px',
-                    }}>
-                        <button
-                            ref={resumeButtonRef}
-                            onClick={handleResume}
-                            style={menuButtonStyle}
-                            onMouseEnter={(e) => handleButtonHover(e, true)}
-                            onMouseLeave={(e) => handleButtonHover(e, false)}
-                            aria-label="Resume game"
-                        >
-                            Resume
-                        </button>
-                        <button
-                            style={menuButtonStyle}
-                            onMouseEnter={(e) => handleButtonHover(e, true)}
-                            onMouseLeave={(e) => handleButtonHover(e, false)}
-                            aria-label="Open settings"
-                        >
-                            Settings
-                        </button>
-                    </div>
-                </div>
+            {isPaused && !showSettings && (
+                <PauseMenu 
+                    onResume={() => setIsPaused(false)}
+                    onSettings={() => setShowSettings(true)}
+                    onQuit={() => window.location.reload()} // Simple quit for now
+                />
+            )}
+
+            {/* Settings Panel */}
+            {showSettings && (
+                <SettingsPanel onClose={() => setShowSettings(false)} />
             )}
 
             <style>{`
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 0.7; }
-        }
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateX(-50%) translateY(10px); }
-          to { opacity: 1; transform: translateX(-50%) translateY(0); }
-        }
-      `}</style>
+                @keyframes pulse {
+                    0%, 100% { opacity: 0.3; }
+                    50% { opacity: 0.7; }
+                }
+            `}</style>
         </div>
     );
 }
