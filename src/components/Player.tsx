@@ -2,6 +2,8 @@ import { furFragmentShader, furVertexShader } from '@/shaders/fur';
 import { useGameStore } from '@/stores/gameStore';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
+import { world as ecsWorld } from '@/ecs/world';
+import { getWeatherMovementMultiplier } from '@/ecs/systems/WeatherSystem';
 import { useFrame } from '@react-three/fiber';
 import { RigidBody, CapsuleCollider } from '@react-three/rapier';
 import { useMemo, useRef, useEffect } from 'react';
@@ -86,15 +88,18 @@ export function Player() {
 
                 // Apply movement force
                 const waterMultiplier = isInWater ? 0.7 : 1.0;
+                const weatherMultiplier = getWeatherMovementMultiplier();
+                const totalMultiplier = waterMultiplier * weatherMultiplier;
+
                 const force = {
-                    x: dirX * MOVE_FORCE * waterMultiplier,
+                    x: dirX * MOVE_FORCE * totalMultiplier,
                     y: 0,
-                    z: dirZ * MOVE_FORCE * waterMultiplier
+                    z: dirZ * MOVE_FORCE * totalMultiplier
                 };
                 
                 // Clamp horizontal velocity
                 const speed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-                if (speed < MAX_SPEED * waterMultiplier) {
+                if (speed < MAX_SPEED * totalMultiplier) {
                     rb.applyImpulse(force, true);
                 }
             }
@@ -148,6 +153,13 @@ export function Player() {
             consumeStamina(5 * delta);
         } else if (!input.active) {
             restoreStamina(10 * delta);
+        }
+
+        // Weather-based stamina effects (e.g. sandstorm)
+        for (const { weather } of ecsWorld.with('weather')) {
+            if (weather.current === 'sandstorm') {
+                consumeStamina(2 * delta); // 2 units per second drain
+            }
         }
 
         // Update game store

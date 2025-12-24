@@ -20,13 +20,11 @@ function lerp(start: number, end: number, t: number): number {
 /**
  * Smoothly transitions between values based on hour and phase
  */
-function calculateTimeValue(hour: number, phase: TimePhase, config: Record<TimePhase, number>): number {
+function calculateTimeValue(hour: number, config: Record<TimePhase, number>): number {
     const h = hour % 24;
-    
-    // Define transition points (1 hour before/after phase changes)
     const transitionDuration = 1.0; 
 
-    if (phase === 'dawn') {
+    if (h >= TIME.DAWN_START && h < TIME.DAWN_END) {
         if (h < TIME.DAWN_START + transitionDuration) {
             const t = (h - TIME.DAWN_START) / transitionDuration;
             return lerp(config.night, config.dawn, t);
@@ -34,7 +32,7 @@ function calculateTimeValue(hour: number, phase: TimePhase, config: Record<TimeP
         return config.dawn;
     }
     
-    if (phase === 'day') {
+    if (h >= TIME.DAWN_END && h < TIME.DAY_END) {
         if (h < TIME.DAWN_END + transitionDuration) {
             const t = (h - TIME.DAWN_END) / transitionDuration;
             return lerp(config.dawn, config.day, t);
@@ -42,7 +40,7 @@ function calculateTimeValue(hour: number, phase: TimePhase, config: Record<TimeP
         return config.day;
     }
     
-    if (phase === 'dusk') {
+    if (h >= TIME.DAY_END && h < TIME.DUSK_END) {
         if (h < TIME.DAY_END + transitionDuration) {
             const t = (h - TIME.DAY_END) / transitionDuration;
             return lerp(config.day, config.dusk, t);
@@ -50,15 +48,10 @@ function calculateTimeValue(hour: number, phase: TimePhase, config: Record<TimeP
         return config.dusk;
     }
     
-    // Night
+    // Night phase
     if (h >= TIME.DUSK_END && h < TIME.DUSK_END + transitionDuration) {
         const t = (h - TIME.DUSK_END) / transitionDuration;
         return lerp(config.dusk, config.night, t);
-    }
-    
-    if (h >= TIME.DAWN_START - transitionDuration && h < TIME.DAWN_START) {
-        const t = (h - (TIME.DAWN_START - transitionDuration)) / transitionDuration;
-        return lerp(config.night, config.dawn, t);
     }
     
     return config.night;
@@ -85,8 +78,8 @@ export function TimeSystem(delta: number) {
         time.sunAngle = dayProgress * 180;
         
         // Intensity and Lighting transitions
-        time.sunIntensity = calculateTimeValue(time.hour, time.phase, LIGHTING.SUN_INTENSITY);
-        time.ambientLight = calculateTimeValue(time.hour, time.phase, LIGHTING.AMBIENT_INTENSITY);
-        time.fogDensity = calculateTimeValue(time.hour, time.phase, LIGHTING.FOG_DENSITY);
+        time.sunIntensity = calculateTimeValue(time.hour, LIGHTING.SUN_INTENSITY);
+        time.ambientLight = calculateTimeValue(time.hour, LIGHTING.AMBIENT_INTENSITY);
+        time.fogDensity = calculateTimeValue(time.hour, LIGHTING.FOG_DENSITY);
     }
 }

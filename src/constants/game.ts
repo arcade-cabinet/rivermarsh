@@ -36,6 +36,7 @@ export const WEATHER = {
   FOG_WEIGHT: 0.15,
   SNOW_WEIGHT: 0.1,
   STORM_WEIGHT: 0.05,
+  SANDSTORM_WEIGHT: 0.05,
 } as const;
 
 // =============================================================================

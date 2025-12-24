@@ -56,6 +56,7 @@ function getRandomWeather(): WeatherType {
         ['fog', WEATHER.FOG_WEIGHT],
         ['snow', WEATHER.SNOW_WEIGHT],
         ['storm', WEATHER.STORM_WEIGHT],
+        ['sandstorm', WEATHER.SANDSTORM_WEIGHT],
     ];
 
     const total = choices.reduce((sum, [, weight]) => sum + weight, 0);

@@ -285,6 +285,10 @@ function Lighting() {
     )
 }
 
+const STORM_FOG_COLOR = new THREE.Color('#444455')
+const RAIN_FOG_COLOR = new THREE.Color('#666677')
+const SANDSTORM_FOG_COLOR = new THREE.Color('#ccaa88')
+
 function Atmosphere() {
     const [timePhase, setTimePhase] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day')
     const [fogDensity, setFogDensity] = useState(0.025)
@@ -322,11 +326,11 @@ function Atmosphere() {
             
             // Influence fog color based on weather
             if (entity.weather.current === 'storm') {
-                targetFogColor.current.lerp(new THREE.Color('#444455'), 0.5);
+                targetFogColor.current.lerp(STORM_FOG_COLOR, 0.5);
             } else if (entity.weather.current === 'rain') {
-                targetFogColor.current.lerp(new THREE.Color('#666677'), 0.3);
+                targetFogColor.current.lerp(RAIN_FOG_COLOR, 0.3);
             } else if (entity.weather.current === 'sandstorm') {
-                targetFogColor.current.lerp(new THREE.Color('#ccaa88'), 0.8);
+                targetFogColor.current.lerp(SANDSTORM_FOG_COLOR, 0.8);
             }
         }
 

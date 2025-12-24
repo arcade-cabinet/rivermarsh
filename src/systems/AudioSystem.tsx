@@ -110,7 +110,7 @@ export function AudioSystem() {
                     if (prevWeather === 'rain' || prevWeather === 'storm') {
                         envAudio.stopRain();
                     }
-                    if (prevWeather === 'storm') {
+                    if (prevWeather === 'storm' || prevWeather === 'sandstorm') {
                         envAudio.stopWind();
                     }
                 }
@@ -131,6 +131,8 @@ export function AudioSystem() {
                         lastThunderTime.current = currentTime;
                         envAudio.playThunder();
                     }
+                } else if (weather.current === 'sandstorm') {
+                    envAudio.startWind(weather.intensity);
                 } else {
                     // Clear weather - ensure sounds are stopped
                     if (currentWeather.current === 'clear') {
