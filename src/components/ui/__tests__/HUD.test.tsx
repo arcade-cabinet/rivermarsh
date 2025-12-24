@@ -1,8 +1,8 @@
-import { world as ecsWorld } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
 import { render, screen, waitFor } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { world as ecsWorld } from '@/ecs/world';
+import { useGameStore } from '@/stores/gameStore';
 import { HUD } from '../HUD';
 
 // Mock the ECS world

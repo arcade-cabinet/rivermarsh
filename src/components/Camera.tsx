@@ -1,7 +1,7 @@
-import { useGameStore } from '@/stores/gameStore';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { useGameStore } from '@/stores/gameStore';
 
 const BASE_CAMERA_OFFSET = new THREE.Vector3(0, 3.5, -5);
 const LOOK_OFFSET = new THREE.Vector3(0, 0.5, 0);
@@ -15,7 +15,7 @@ export function FollowCamera() {
     const player = useGameStore((s) => s.player);
     const [zoomLevel, setZoomLevel] = useState(DEFAULT_ZOOM);
     const lastPinchDistanceRef = useRef<number | null>(null);
-    
+
     // Reusable vectors to avoid GC pressure in render loop
     const cameraOffsetRef = useRef(new THREE.Vector3());
     const idealPosRef = useRef(new THREE.Vector3());
@@ -41,7 +41,9 @@ export function FollowCamera() {
                     const delta = distance - lastPinchDistanceRef.current;
                     const zoomDelta = delta * ZOOM_SENSITIVITY;
 
-                    setZoomLevel(prev => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev - zoomDelta)));
+                    setZoomLevel((prev) =>
+                        Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev - zoomDelta))
+                    );
                 }
 
                 lastPinchDistanceRef.current = distance;
@@ -60,7 +62,7 @@ export function FollowCamera() {
             if (!('ontouchstart' in window)) {
                 e.preventDefault();
                 const delta = e.deltaY * -0.001;
-                setZoomLevel(prev => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev + delta)));
+                setZoomLevel((prev) => Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, prev + delta)));
             }
         };
 

@@ -1,8 +1,9 @@
+import { useFrame } from '@react-three/fiber';
+import { useRef } from 'react';
 import { useGameStore } from '@/stores/gameStore';
 import { getAdaptiveQualityManager } from '@/utils/adaptiveQuality';
 import { getMemoryMonitor } from '@/utils/memoryMonitor';
-import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
+import { AchievementSystem } from '../ecs/systems/AchievementSystem';
 import { AISystem } from '../ecs/systems/AISystem';
 import { CombatSystem } from '../ecs/systems/CombatSystem';
 import { PlayerSyncSystem } from '../ecs/systems/PlayerSyncSystem';
@@ -14,9 +15,8 @@ import { EnemyEffectsSystem } from '../ecs/systems/EnemyEffectsSystem';
 import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
-import { AchievementSystem } from '../ecs/systems/AchievementSystem';
-import { AudioSystem } from './AudioSystem';
 import { world } from '../ecs/world';
+import { AudioSystem } from './AudioSystem';
 
 export function GameSystems() {
     const playerPos = useGameStore((s) => s.player.position);
@@ -36,14 +36,14 @@ export function GameSystems() {
                 easy: { spawnRate: 0.7, damage: 0.5, health: 0.8, exp: 1.2 },
                 normal: { spawnRate: 1.0, damage: 1.0, health: 1.0, exp: 1.0 },
                 hard: { spawnRate: 1.3, damage: 1.5, health: 1.2, exp: 0.8 },
-                legendary: { spawnRate: 1.6, damage: 2.5, health: 1.5, exp: 0.6 }
+                legendary: { spawnRate: 1.6, damage: 2.5, health: 1.5, exp: 0.6 },
             }[currentDifficulty];
-            
+
             worldEntity.difficulty.spawnRateMultiplier = settings.spawnRate;
             worldEntity.difficulty.damageMultiplier = settings.damage;
             worldEntity.difficulty.healthMultiplier = settings.health;
             worldEntity.difficulty.experienceMultiplier = settings.exp;
-            
+
             console.log(`Difficulty changed to ${currentDifficulty}`, worldEntity.difficulty);
         }
 

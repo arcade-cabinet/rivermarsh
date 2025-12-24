@@ -1,14 +1,14 @@
-import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
-import { world } from '@/ecs/world';
-import { useGameStore } from '@/stores/gameStore';
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
+import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
+import { world } from '@/ecs/world';
+import { useGameStore } from '@/stores/gameStore';
 
 const COLLECTION_DISTANCE = 1.5;
 
 export function TapToCollect() {
-    const { camera, scene } = useThree();
+    const { camera } = useThree();
     const playerPos = useGameStore((s) => s.player.position);
 
     useEffect(() => {
@@ -17,7 +17,9 @@ export function TapToCollect() {
 
         const handleTap = (e: TouchEvent) => {
             // Only handle single-finger taps (not pinch or multi-touch)
-            if (e.touches.length !== 1) return;
+            if (e.touches.length !== 1) {
+                return;
+            }
 
             const touch = e.touches[0];
 
@@ -30,13 +32,17 @@ export function TapToCollect() {
 
             // Check all resources
             for (const entity of world.with('isResource', 'transform', 'resource')) {
-                if (!entity.transform || !entity.resource || entity.resource.collected) continue;
+                if (!entity.transform || !entity.resource || entity.resource.collected) {
+                    continue;
+                }
 
                 const resourcePos = entity.transform.position;
 
                 // Check if resource is within collection distance of player
                 const distanceToPlayer = playerPos.distanceTo(resourcePos);
-                if (distanceToPlayer > COLLECTION_DISTANCE) continue;
+                if (distanceToPlayer > COLLECTION_DISTANCE) {
+                    continue;
+                }
 
                 // Check if tap hit the resource (sphere collision)
                 const resourceRadius = 0.5; // Approximate size
@@ -62,7 +68,7 @@ export function TapToCollect() {
                         if (audioManager) {
                             audioManager.playSound('collect', 0.6);
                         }
-                    } catch (e) {
+                    } catch (_e) {
                         // Audio manager not available
                     }
 
@@ -80,7 +86,7 @@ export function TapToCollect() {
         return () => {
             window.removeEventListener('touchstart', handleTap);
         };
-    }, [camera, scene, playerPos]);
+    }, [camera, playerPos]);
 
     return null;
 }

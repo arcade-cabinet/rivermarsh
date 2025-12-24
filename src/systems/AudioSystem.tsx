@@ -1,12 +1,16 @@
+import { useFrame, useThree } from '@react-three/fiber';
+import { useEffect, useRef } from 'react';
 import { getBiomeAtPosition } from '@/ecs/data/biomes';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
 import { disposeAudioManager, getAudioManager, initAudioManager } from '@/utils/audioManager';
 import { disposeBiomeAmbience, getBiomeAmbience, initBiomeAmbience } from '@/utils/biomeAmbience';
-import { disposeEnvironmentalAudio, getEnvironmentalAudio, initEnvironmentalAudio } from '@/utils/environmentalAudio';
-import { useFrame, useThree } from '@react-three/fiber';
-import { useEffect, useRef } from 'react';
+import {
+    disposeEnvironmentalAudio,
+    getEnvironmentalAudio,
+    initEnvironmentalAudio,
+} from '@/utils/environmentalAudio';
 
 type InitState = 'idle' | 'initializing' | 'initialized';
 
@@ -37,10 +41,7 @@ export function AudioSystem() {
                 initAudioManager(camera);
 
                 // Initialize async audio systems
-                await Promise.all([
-                    initEnvironmentalAudio(),
-                    initBiomeAmbience(),
-                ]);
+                await Promise.all([initEnvironmentalAudio(), initBiomeAmbience()]);
 
                 // Only mark as initialized if component is still mounted
                 if (mounted) {
@@ -72,7 +73,9 @@ export function AudioSystem() {
 
     useFrame((_, delta) => {
         const audioManager = getAudioManager();
-        if (!audioManager) return;
+        if (!audioManager) {
+            return;
+        }
 
         const player = useGameStore.getState().player;
         const isMoving = player.isMoving;
@@ -85,13 +88,13 @@ export function AudioSystem() {
                 // Biome changed - crossfade ambient soundscapes
                 const prevBiome = currentBiome.current;
                 currentBiome.current = biome.current;
-                
+
                 // Crossfade: fade out previous biome, fade in new biome
                 if (biomeAmbience) {
                     biomeAmbience.setVolume(prevBiome as any, 0);
                     biomeAmbience.setVolume(biome.current as any, 1);
                 }
-                
+
                 // Also play ambient from audio manager (for loaded audio files)
                 audioManager.playAmbient(biome.current);
             }
@@ -123,7 +126,7 @@ export function AudioSystem() {
                 } else if (weather.current === 'storm') {
                     envAudio.startRain(weather.intensity);
                     envAudio.startWind(weather.intensity);
-                    
+
                     // Random thunder at intervals
                     const currentTime = Date.now() / 1000;
                     const thunderInterval = 5 + Math.random() * 10; // 5-15 seconds
@@ -155,10 +158,14 @@ export function AudioSystem() {
 
                 // Determine terrain type at player position
                 const biomeLayout = getBiomeLayout();
-                const biomeType = getBiomeAtPosition(player.position.x, player.position.z, biomeLayout);
-                
+                const biomeType = getBiomeAtPosition(
+                    player.position.x,
+                    player.position.z,
+                    biomeLayout
+                );
+
                 let terrainType: 'grass' | 'rock' | 'water' | 'snow' = 'grass';
-                
+
                 // Determine terrain type based on biome and player height
                 if (player.position.y < 0.2) {
                     terrainType = 'water';

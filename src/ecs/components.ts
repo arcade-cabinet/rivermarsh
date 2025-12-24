@@ -1,18 +1,12 @@
-import { Quaternion, Vector3 } from 'three';
+import type { Quaternion, Vector3 } from 'three';
 
 // Component Types
 export type TimePhase = 'dawn' | 'day' | 'dusk' | 'night';
 
-export type WeatherType =
-    | 'clear'
-    | 'rain'
-    | 'fog'
-    | 'snow'
-    | 'storm'
-    | 'sandstorm';
+export type WeatherType = 'clear' | 'rain' | 'fog' | 'snow' | 'storm' | 'sandstorm';
 
 export interface TimeOfDayComponent {
-    hour: number;          // 0.0 to 24.0
+    hour: number; // 0.0 to 24.0
     phase: TimePhase;
     dayCount: number;
     sunIntensity: number;
@@ -35,7 +29,14 @@ export interface WeatherComponent {
     durationMinutes: number;
 }
 
-export type BiomeType = 'marsh' | 'forest' | 'desert' | 'tundra' | 'savanna' | 'mountain' | 'scrubland';
+export type BiomeType =
+    | 'marsh'
+    | 'forest'
+    | 'desert'
+    | 'tundra'
+    | 'savanna'
+    | 'mountain'
+    | 'scrubland';
 
 export interface BiomeComponent {
     current: BiomeType;

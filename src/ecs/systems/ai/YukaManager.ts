@@ -1,6 +1,6 @@
 /**
  * YukaManager - Bridges Miniplex ECS entities with Yuka AI library
- * 
+ *
  * This module provides production-quality AI using Yuka's battle-tested:
  * - Vehicle class for physics-based movement
  * - Steering behaviors (Wander, Seek, Flee, Separation, ObstacleAvoidance)
@@ -8,17 +8,17 @@
  * - CellSpacePartitioning for efficient neighbor queries
  */
 
-import {
-    EntityManager,
-    Vehicle,
-    Time,
-    Vector3 as YukaVector3,
-    CellSpacePartitioning,
-    GameEntity,
-    StateMachine,
-} from 'yuka';
 import * as THREE from 'three';
-import { Entity } from '../../components';
+import {
+    CellSpacePartitioning,
+    EntityManager,
+    GameEntity,
+    type StateMachine,
+    Time,
+    Vehicle,
+    type Vector3 as YukaVector3,
+} from 'yuka';
+import type { Entity } from '../../components';
 
 // World dimensions for spatial partitioning
 const WORLD_SIZE = 200; // meters
@@ -46,7 +46,7 @@ export class NPCVehicle extends Vehicle {
         if (this.stateMachine) {
             this.stateMachine.update();
         }
-        
+
         // Then update vehicle physics
         return super.update(delta);
     }
@@ -56,10 +56,6 @@ export class NPCVehicle extends Vehicle {
  * ObstacleEntity represents static obstacles (rocks, trees) for avoidance
  */
 export class ObstacleEntity extends GameEntity {
-    constructor() {
-        super();
-    }
-
     /**
      * Initialize obstacle with position and radius
      */
@@ -84,18 +80,18 @@ class YukaManagerClass {
     constructor() {
         this.entityManager = new EntityManager();
         this.time = new Time();
-        
+
         // Create spatial index centered at origin
         // Width, Height, Depth, CellsX, CellsY, CellsZ
         this.spatialIndex = new CellSpacePartitioning(
-            WORLD_SIZE, 
+            WORLD_SIZE,
             50, // Height (mostly 2D game)
             WORLD_SIZE,
             CELLS_PER_AXIS,
             1, // Single layer for Y (2D game)
             CELLS_PER_AXIS
         );
-        
+
         this.entityManager.spatialIndex = this.spatialIndex;
     }
 
@@ -103,7 +99,9 @@ class YukaManagerClass {
      * Initialize the Yuka manager
      */
     init(): void {
-        if (this.initialized) return;
+        if (this.initialized) {
+            return;
+        }
         this.initialized = true;
     }
 
@@ -112,10 +110,7 @@ class YukaManagerClass {
      * @param entity The Miniplex entity to register
      * @param setupStateMachine Callback to set up the state machine (injected to avoid circular deps)
      */
-    registerNPC(
-        entity: Entity,
-        setupStateMachine?: (vehicle: NPCVehicle) => void
-    ): NPCVehicle | null {
+    registerNPC(entity: Entity, setupStateMachine?: (vehicle: NPCVehicle) => void): NPCVehicle | null {
         if (!entity.id || !entity.transform || !entity.species || !entity.steering) {
             return null;
         }
@@ -208,7 +203,7 @@ class YukaManagerClass {
      */
     update(delta: number): void {
         // Update Yuka time (converts seconds to Yuka's internal time format)
-        this.time._previousTime = this.time._currentTime;
+        this.time._previousTime = this.time._previousTime;
         this.time._currentTime += delta * 1000; // Yuka uses milliseconds internally
 
         // Update all entities via Yuka's EntityManager
@@ -221,21 +216,15 @@ class YukaManagerClass {
     syncToMiniplex(): void {
         for (const vehicle of this.vehicleMap.values()) {
             const entity = vehicle.miniplexEntity;
-            if (!entity || !entity.transform || !entity.movement || entity.isPlayer) continue;
+            if (!entity || !entity.transform || !entity.movement || entity.isPlayer) {
+                continue;
+            }
 
             // Update position
-            entity.transform.position.set(
-                vehicle.position.x,
-                vehicle.position.y,
-                vehicle.position.z
-            );
+            entity.transform.position.set(vehicle.position.x, vehicle.position.y, vehicle.position.z);
 
             // Update velocity
-            entity.movement.velocity.set(
-                vehicle.velocity.x,
-                vehicle.velocity.y,
-                vehicle.velocity.z
-            );
+            entity.movement.velocity.set(vehicle.velocity.x, vehicle.velocity.y, vehicle.velocity.z);
 
             // Update rotation to face movement direction
             if (vehicle.velocity.squaredLength() > 0.01) {
@@ -254,21 +243,23 @@ class YukaManagerClass {
         type?: 'predator' | 'prey' | 'player'
     ): NPCVehicle[] {
         const result: NPCVehicle[] = [];
-        
+
         for (const vehicle of this.vehicleMap.values()) {
-            if (type && vehicle.entityType !== type) continue;
-            
+            if (type && vehicle.entityType !== type) {
+                continue;
+            }
+
             const dx = vehicle.position.x - position.x;
             const posY = 'y' in position ? position.y : 0;
             const dy = vehicle.position.y - posY;
             const dz = vehicle.position.z - position.z;
             const distSq = dx * dx + dy * dy + dz * dz;
-            
+
             if (distSq <= radius * radius) {
                 result.push(vehicle);
             }
         }
-        
+
         return result;
     }
 
@@ -281,20 +272,22 @@ class YukaManagerClass {
     ): NPCVehicle | null {
         let nearest: NPCVehicle | null = null;
         let nearestDistSq = Infinity;
-        
+
         for (const vehicle of this.vehicleMap.values()) {
-            if (vehicle.entityType !== type) continue;
-            
+            if (vehicle.entityType !== type) {
+                continue;
+            }
+
             const dx = vehicle.position.x - position.x;
             const dz = vehicle.position.z - position.z;
             const distSq = dx * dx + dz * dz;
-            
+
             if (distSq < nearestDistSq) {
                 nearestDistSq = distSq;
                 nearest = vehicle;
             }
         }
-        
+
         return nearest;
     }
 

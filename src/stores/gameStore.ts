@@ -104,72 +104,78 @@ export const useGameStore = create<GameState>((set) => ({
     updateTime: (delta) => set((state) => ({ time: state.time + delta })),
     setDifficulty: (difficulty) => set({ difficulty }),
     setInput: (x, y, active, jump) => set({ input: { direction: { x, y }, active, jump } }),
-    updatePlayer: (updates) => set((state) => ({
-        player: { ...state.player, ...updates },
-    })),
+    updatePlayer: (updates) =>
+        set((state) => ({
+            player: { ...state.player, ...updates },
+        })),
     setRocks: (rocks) => set({ rocks }),
-    damagePlayer: (amount) => set((state) => {
-        if (state.player.invulnerable || Date.now() < state.player.invulnerableUntil) {
-            return state;
-        }
-        const newHealth = Math.max(0, state.player.health - amount);
-        const gameOver = newHealth <= 0;
-        
-        // Play damage sound (optional, may not be available in tests)
-        try {
-            const { getAudioManager } = require('@/utils/audioManager');
-            const audioManager = getAudioManager();
-            if (audioManager) {
-                audioManager.playSound('damage', 0.5);
+    damagePlayer: (amount) =>
+        set((state) => {
+            if (state.player.invulnerable || Date.now() < state.player.invulnerableUntil) {
+                return state;
             }
-        } catch (e) {
-            // Audio manager not available (e.g., in tests)
-        }
-        
-        return {
+            const newHealth = Math.max(0, state.player.health - amount);
+            const gameOver = newHealth <= 0;
+
+            // Play damage sound (optional, may not be available in tests)
+            try {
+                const { getAudioManager } = require('@/utils/audioManager');
+                const audioManager = getAudioManager();
+                if (audioManager) {
+                    audioManager.playSound('damage', 0.5);
+                }
+            } catch (_e) {
+                // Audio manager not available (e.g., in tests)
+            }
+
+            return {
+                player: {
+                    ...state.player,
+                    health: newHealth,
+                    invulnerableUntil: Date.now() + 1000, // 1 second invulnerability
+                },
+                gameOver,
+            };
+        }),
+    healPlayer: (amount) =>
+        set((state) => ({
             player: {
                 ...state.player,
-                health: newHealth,
-                invulnerableUntil: Date.now() + 1000, // 1 second invulnerability
+                health: Math.min(state.player.maxHealth, state.player.health + amount),
             },
-            gameOver,
-        };
-    }),
-    healPlayer: (amount) => set((state) => ({
-        player: {
-            ...state.player,
-            health: Math.min(state.player.maxHealth, state.player.health + amount),
-        },
-    })),
-    restoreStamina: (amount) => set((state) => ({
-        player: {
-            ...state.player,
-            stamina: Math.min(state.player.maxStamina, state.player.stamina + amount),
-        },
-    })),
-    consumeStamina: (amount) => set((state) => ({
-        player: {
-            ...state.player,
-            stamina: Math.max(0, state.player.stamina - amount),
-        },
-    })),
+        })),
+    restoreStamina: (amount) =>
+        set((state) => ({
+            player: {
+                ...state.player,
+                stamina: Math.min(state.player.maxStamina, state.player.stamina + amount),
+            },
+        })),
+    consumeStamina: (amount) =>
+        set((state) => ({
+            player: {
+                ...state.player,
+                stamina: Math.max(0, state.player.stamina - amount),
+            },
+        })),
     setGameOver: (gameOver) => set({ gameOver }),
     setNearbyResource: (resource) => set({ nearbyResource: resource }),
     addScore: (amount) => set((state) => ({ score: state.score + amount })),
     setDistance: (distance) => set({ distance }),
-    respawn: () => set((state) => ({
-        player: {
-            ...state.player,
-            position: new THREE.Vector3(0, 0, 0),
-            health: state.player.maxHealth,
-            stamina: state.player.maxStamina,
-            verticalSpeed: 0,
-            isJumping: false,
-        },
-        gameOver: false,
-        score: 0,
-        distance: 0,
-    })),
+    respawn: () =>
+        set((state) => ({
+            player: {
+                ...state.player,
+                position: new THREE.Vector3(0, 0, 0),
+                health: state.player.maxHealth,
+                stamina: state.player.maxStamina,
+                verticalSpeed: 0,
+                isJumping: false,
+            },
+            gameOver: false,
+            score: 0,
+            distance: 0,
+        })),
     saveGame: () => {
         const state = useGameStore.getState();
         saveGameUtil({
@@ -180,7 +186,9 @@ export const useGameStore = create<GameState>((set) => ({
     },
     loadGame: () => {
         const saveData = loadGameUtil();
-        if (!saveData) return;
+        if (!saveData) {
+            return;
+        }
 
         set((state) => ({
             player: {

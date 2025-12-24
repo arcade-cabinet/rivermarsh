@@ -24,7 +24,7 @@ describe('GameStore', () => {
     });
 
     // Feature: otterfall-complete, Property 9: Stamina Conservation
-    // For any player state update, if the player is not running, stamina 
+    // For any player state update, if the player is not running, stamina
     // should increase or remain constant, never decrease.
     it('Property 9: Stamina Conservation', () => {
         fc.assert(
@@ -143,11 +143,11 @@ describe('GameStore', () => {
         // Test healing logic directly
         const currentHealth = 50;
         const maxHealth = 100;
-        
+
         // Heal by 30
         const afterHeal1 = Math.min(maxHealth, currentHealth + 30);
         expect(afterHeal1).toBe(80);
-        
+
         // Heal by 50 more (should cap at 100)
         const afterHeal2 = Math.min(maxHealth, afterHeal1 + 50);
         expect(afterHeal2).toBe(100);
@@ -171,11 +171,11 @@ describe('GameStore', () => {
         // Test stamina restoration logic directly
         const currentStamina = 50;
         const maxStamina = 100;
-        
+
         // Restore by 30
         const afterRestore1 = Math.min(maxStamina, currentStamina + 30);
         expect(afterRestore1).toBe(80);
-        
+
         // Restore by 50 more (should cap at 100)
         const afterRestore2 = Math.min(maxStamina, afterRestore1 + 50);
         expect(afterRestore2).toBe(100);

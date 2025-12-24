@@ -1,5 +1,5 @@
+import type * as THREE from 'three';
 import { world } from '@/ecs/world';
-import * as THREE from 'three';
 
 export interface SaveData {
     version: string;
@@ -40,8 +40,8 @@ export function saveGame(playerState: {
 
         // Get resource states
         const resources = Array.from(world.with('isResource', 'resource').entities)
-            .filter(entity => entity.id !== undefined)
-            .map(entity => ({
+            .filter((entity) => entity.id !== undefined)
+            .map((entity) => ({
                 id: entity.id!,
                 collected: entity.resource?.collected || false,
                 collectedAt: entity.resource?.collectedAt || 0,
@@ -70,26 +70,52 @@ export function saveGame(playerState: {
 }
 
 function isValidSaveData(data: any): data is SaveData {
-    if (!data || typeof data !== 'object') return false;
+    if (!data || typeof data !== 'object') {
+        return false;
+    }
 
     // Check version and timestamp
-    if (typeof data.version !== 'string' || typeof data.timestamp !== 'number') return false;
+    if (typeof data.version !== 'string' || typeof data.timestamp !== 'number') {
+        return false;
+    }
 
     // Check player
-    if (!data.player || typeof data.player !== 'object') return false;
-    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
-    if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
-    if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number') return false;
+    if (!data.player || typeof data.player !== 'object') {
+        return false;
+    }
+    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) {
+        return false;
+    }
+    if (data.player.position.some((n: any) => typeof n !== 'number')) {
+        return false;
+    }
+    if (typeof data.player.health !== 'number' || typeof data.player.stamina !== 'number') {
+        return false;
+    }
 
     // Check world
-    if (!data.world || typeof data.world !== 'object') return false;
-    if (typeof data.world.time !== 'number' || typeof data.world.weather !== 'string') return false;
+    if (!data.world || typeof data.world !== 'object') {
+        return false;
+    }
+    if (typeof data.world.time !== 'number' || typeof data.world.weather !== 'string') {
+        return false;
+    }
 
     // Check resources
-    if (!Array.isArray(data.resources)) return false;
+    if (!Array.isArray(data.resources)) {
+        return false;
+    }
     for (const res of data.resources) {
-        if (!res || typeof res !== 'object') return false;
-        if (typeof res.id !== 'number' || typeof res.collected !== 'boolean' || typeof res.collectedAt !== 'number') return false;
+        if (!res || typeof res !== 'object') {
+            return false;
+        }
+        if (
+            typeof res.id !== 'number' ||
+            typeof res.collected !== 'boolean' ||
+            typeof res.collectedAt !== 'number'
+        ) {
+            return false;
+        }
     }
 
     return true;
@@ -98,7 +124,9 @@ function isValidSaveData(data: any): data is SaveData {
 export function loadGame(): SaveData | null {
     try {
         const savedData = localStorage.getItem(SAVE_KEY);
-        if (!savedData) return null;
+        if (!savedData) {
+            return null;
+        }
 
         const data = JSON.parse(savedData);
 
