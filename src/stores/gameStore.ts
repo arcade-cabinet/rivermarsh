@@ -23,6 +23,7 @@ interface PlayerState {
     maxHealth: number;
     stamina: number;
     maxStamina: number;
+    speedMultiplier: number;
     invulnerable: boolean;
     invulnerableUntil: number;
 }
@@ -89,6 +90,7 @@ export const useGameStore = create<GameState>((set) => ({
         maxHealth: 100,
         stamina: 100,
         maxStamina: 100,
+        speedMultiplier: 1.0,
         invulnerable: false,
         invulnerableUntil: 0,
     },

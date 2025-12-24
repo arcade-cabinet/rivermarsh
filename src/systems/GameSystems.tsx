@@ -10,6 +10,7 @@ import { BiomeSystem } from '../ecs/systems/BiomeSystem';
 import { CollisionSystem } from '../ecs/systems/CollisionSystem';
 import { ResourceSystem } from '../ecs/systems/ResourceSystem';
 import { SpawnSystem } from '../ecs/systems/SpawnSystem';
+import { EnemyEffectsSystem } from '../ecs/systems/EnemyEffectsSystem';
 import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
@@ -78,6 +79,7 @@ export function GameSystems() {
         WeatherSystem(delta);
         WorldEventSystem();
         BiomeSystem(playerPos.x, playerPos.z);
+        EnemyEffectsSystem(delta);
         SpawnSystem(playerPos);
         AISystem(delta);
         CollisionSystem(delta);
