@@ -35,8 +35,10 @@ export function BossBattleSystem() {
     if (combat.turn === 'boss' && !boss.isProcessingTurn) {
         boss.isProcessingTurn = true;
         
-        // Simple Boss AI logic with delay
-        const timeoutId = setTimeout(() => {
+        // Simple Boss AI logic - use a flag to prevent multiple executions
+        if (!boss.isProcessingTurn) {
+            boss.isProcessingTurn = true;
+            setTimeout(() => {
             // Check if still in boss battle and boss still exists
             const currentBoss = world.entities.find(e => e.id === activeBossId);
             if (!currentBoss || !currentBoss.boss || !currentBoss.combat || useGameStore.getState().mode !== 'boss_battle') {

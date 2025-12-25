@@ -1,4 +1,4 @@
-import { BossComponent, SpeciesComponent } from '../components';
+import { BossComponent } from '../components';
 
 export interface BossData {
     name: string;
