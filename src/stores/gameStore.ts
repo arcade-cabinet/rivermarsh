@@ -10,7 +10,7 @@ export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
  * to ensure consistency with the leveling loop.
  */
 const calculateExpToNext = (level: number): number => {
-    let required = LEVELING.BASE_XP_REQUIRED;
+    let required: number = LEVELING.BASE_XP_REQUIRED;
     for (let i = 1; i < level; i++) {
         required = Math.floor(required * LEVELING.XP_MULTIPLIER);
     }

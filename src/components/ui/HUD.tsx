@@ -1,7 +1,7 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useGameStore } from '@/stores/gameStore';
 import { useRivermarsh } from '@/stores/useRivermarsh';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 
