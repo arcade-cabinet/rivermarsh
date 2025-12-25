@@ -5,7 +5,7 @@ import { useMobileConstraints } from "@/hooks/useMobileConstraints";
 
 export function VirtualJoysticks() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const { setMovement, resetMovement } = useControlsStore();
+  const { setMovement, resetMovement, setJoystickActive } = useControlsStore();
   const constraints = useMobileConstraints();
 
   useEffect(() => {
@@ -22,6 +22,10 @@ export function VirtualJoysticks() {
       multitouch: true,
     });
 
+    joystickManager.on("start", () => {
+      setJoystickActive(true);
+    });
+
     joystickManager.on("move", (_evt, data) => {
       // Improved movement mapping: 50 is the radius (size/2)
       const clampedDistance = Math.min(data.distance, 50) / 50;
@@ -31,13 +35,14 @@ export function VirtualJoysticks() {
     });
 
     joystickManager.on("end", () => {
+      setJoystickActive(false);
       resetMovement();
     });
 
     return () => {
       joystickManager.destroy();
     };
-  }, [setMovement, resetMovement, constraints.isMobile]);
+  }, [setMovement, resetMovement, setJoystickActive, constraints.isMobile]);
 
   if (!constraints.isMobile) return null;
 

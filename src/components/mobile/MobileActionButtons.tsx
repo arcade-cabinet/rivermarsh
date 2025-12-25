@@ -84,6 +84,9 @@ export function MobileActionButtons() {
           onTouchEnd={(e) => { e.preventDefault(); handleAction('jump', false); }}
           onMouseDown={(e) => { e.preventDefault(); handleAction('jump', true); }}
           onMouseUp={(e) => { e.preventDefault(); handleAction('jump', false); }}
+          aria-label="Jump"
+          role="button"
+          tabIndex={0}
         >
           <span style={{ fontSize: "20px", marginBottom: "2px" }}>🚀</span>
           JUMP
@@ -99,6 +102,9 @@ export function MobileActionButtons() {
           onTouchEnd={(e) => { e.preventDefault(); handleAction('interact', false); }}
           onMouseDown={(e) => { e.preventDefault(); handleAction('interact', true); }}
           onMouseUp={(e) => { e.preventDefault(); handleAction('interact', false); }}
+          aria-label="Talk"
+          role="button"
+          tabIndex={0}
         >
           <span style={{ fontSize: "20px", marginBottom: "2px" }}>💬</span>
           TALK

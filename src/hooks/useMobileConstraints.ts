@@ -95,7 +95,7 @@ export function useMobileConstraints(): MobileConstraints {
 
   const updateConstraints = useCallback(() => {
     if (typeof window === 'undefined') return;
-    
+
     const { isPhone, isTablet } = detectDeviceType();
     const orientation =
       window.innerHeight > window.innerWidth ? 'portrait' : 'landscape';
