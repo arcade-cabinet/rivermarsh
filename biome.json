@@ -22,6 +22,14 @@
                 "noGlobalEval": "error",
                 "noDangerouslySetInnerHtml": "error"
             },
+            "suspicious": {
+                "noExplicitAny": "warn",
+                "noImplicitAnyLet": "error"
+            }
+            "security": {
+                "noGlobalEval": "error",
+                "noDangerouslySetInnerHtml": "error"
+            },
             "complexity": {
                 "noExcessiveCognitiveComplexity": "off",
                 "noStaticOnlyClass": "off"
