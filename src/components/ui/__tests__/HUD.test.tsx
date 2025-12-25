@@ -33,7 +33,7 @@ vi.mock('@/ecs/world', () => ({
                 };
             }
             return {
-                *[Symbol.iterator]() { },
+                *[Symbol.iterator]() {},
             };
         }),
     },

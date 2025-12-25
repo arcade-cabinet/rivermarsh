@@ -1,6 +1,6 @@
+import { WEATHER } from '@/constants/game';
 import type { WeatherType } from '../components';
 import { world } from '../world';
-import { WEATHER } from '@/constants/game';
 
 const WEATHER_CONFIG = {
     clear: {
@@ -113,8 +113,7 @@ export function WeatherSystem(delta: number) {
                     currentConfig.visibilityMod * (1 - t) + nextConfig.visibilityMod * t;
                 weather.windSpeed =
                     2 * (currentConfig.windSpeedMult * (1 - t) + nextConfig.windSpeedMult * t);
-                weather.fogDensity =
-                    currentConfig.fogDensity * (1 - t) + nextConfig.fogDensity * t;
+                weather.fogDensity = currentConfig.fogDensity * (1 - t) + nextConfig.fogDensity * t;
             }
         } else {
             // Apply current weather properties

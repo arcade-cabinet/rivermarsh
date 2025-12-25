@@ -1,6 +1,6 @@
+import { AdvancedWater, ProceduralSky } from '@jbcom/strata';
 import { Html, PerspectiveCamera, useAnimations, useGLTF } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
-import { AdvancedWater, ProceduralSky } from '@jbcom/strata';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { useRivermarsh } from '@/stores/useRivermarsh';
@@ -276,7 +276,13 @@ function RacingHUD() {
                             )}
 
                             {status === 'menu' && (
-                                <p style={{ fontSize: '18px', color: '#ccc', marginBottom: '30px' }}>
+                                <p
+                                    style={{
+                                        fontSize: '18px',
+                                        color: '#ccc',
+                                        marginBottom: '30px',
+                                    }}
+                                >
                                     Avoid rocks, collect coins! <br />
                                     WASD or Swipe to move.
                                 </p>

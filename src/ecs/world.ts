@@ -1,6 +1,6 @@
 import { World } from 'miniplex';
+import { LIGHTING, TIME } from '@/constants/game';
 import type { Entity } from './components';
-import { TIME, LIGHTING } from '@/constants/game';
 
 // Create the global world instance
 export const world = new World<Entity>();

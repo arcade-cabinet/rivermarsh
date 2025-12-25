@@ -21,13 +21,8 @@ export function HUD() {
     const experience = useRivermarsh((s) => s.player.stats.experience);
     const showHelpSetting = useRivermarsh((s) => s.settings?.showHelp ?? true);
     const xpToNext = level * 100;
-<<<<<<< HEAD
-    
     const { toggleShop } = useRivermarsh();
-    
-=======
 
->>>>>>> 72f070e9 (feat: Integrate Strata, add examples and polish UI)
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
     const [weatherDisplay, setWeatherDisplay] = useState('clear');
     const [isPaused, setIsPaused] = useState(false);
@@ -51,7 +46,7 @@ export function HUD() {
             }
             // Weather
             for (const { weather } of ecsWorld.with('weather')) {
-                if (weather && weather.current) {
+                if (weather?.current) {
                     setWeatherDisplay(weather.current);
                 }
                 break;

@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
-import { useControlsStore } from '@/stores/useControlsStore';
 import { useGameStore } from '@/stores/gameStore';
+import { useControlsStore } from '@/stores/useControlsStore';
 
 export function useInput() {
     const setInput = useGameStore((s) => s.setInput);
@@ -37,7 +37,12 @@ export function useInput() {
             } else {
                 // If no keys, use the controls store (which might have mobile input)
                 const { movement, actions } = useControlsStore.getState();
-                setInput(movement.x, movement.y, movement.x !== 0 || movement.y !== 0, actions.jump);
+                setInput(
+                    movement.x,
+                    movement.y,
+                    movement.x !== 0 || movement.y !== 0,
+                    actions.jump
+                );
             }
 
             // Sync to controls store for systems that use it

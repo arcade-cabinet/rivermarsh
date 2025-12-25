@@ -1,12 +1,18 @@
+import { LIGHTING, TIME } from '@/constants/game';
 import type { TimePhase } from '../components';
 import { world } from '../world';
-import { TIME, LIGHTING } from '@/constants/game';
 
 function getPhaseFromHour(hour: number): TimePhase {
     const h = hour % 24;
-    if (h >= TIME.DAWN_START && h < TIME.DAWN_END) return 'dawn';
-    if (h >= TIME.DAWN_END && h < TIME.DAY_END) return 'day';
-    if (h >= TIME.DAY_END && h < TIME.DUSK_END) return 'dusk';
+    if (h >= TIME.DAWN_START && h < TIME.DAWN_END) {
+        return 'dawn';
+    }
+    if (h >= TIME.DAWN_END && h < TIME.DAY_END) {
+        return 'day';
+    }
+    if (h >= TIME.DAY_END && h < TIME.DUSK_END) {
+        return 'dusk';
+    }
     return 'night';
 }
 

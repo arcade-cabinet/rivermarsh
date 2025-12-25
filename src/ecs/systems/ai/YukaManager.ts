@@ -110,7 +110,10 @@ class YukaManagerClass {
      * @param entity The Miniplex entity to register
      * @param setupStateMachine Callback to set up the state machine (injected to avoid circular deps)
      */
-    registerNPC(entity: Entity, setupStateMachine?: (vehicle: NPCVehicle) => void): NPCVehicle | null {
+    registerNPC(
+        entity: Entity,
+        setupStateMachine?: (vehicle: NPCVehicle) => void
+    ): NPCVehicle | null {
         if (!entity.id || !entity.transform || !entity.species || !entity.steering) {
             return null;
         }
@@ -221,10 +224,18 @@ class YukaManagerClass {
             }
 
             // Update position
-            entity.transform.position.set(vehicle.position.x, vehicle.position.y, vehicle.position.z);
+            entity.transform.position.set(
+                vehicle.position.x,
+                vehicle.position.y,
+                vehicle.position.z
+            );
 
             // Update velocity
-            entity.movement.velocity.set(vehicle.velocity.x, vehicle.velocity.y, vehicle.velocity.z);
+            entity.movement.velocity.set(
+                vehicle.velocity.x,
+                vehicle.velocity.y,
+                vehicle.velocity.z
+            );
 
             // Update rotation to face movement direction
             if (vehicle.velocity.squaredLength() > 0.01) {

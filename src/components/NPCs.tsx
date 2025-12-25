@@ -119,7 +119,15 @@ function NPC({ entityId }: NPCProps) {
                     </mesh>
                     <mesh position={[(healthPercent - 1) * 0.4 * sizeScale, 0, 0.01]}>
                         <planeGeometry args={[0.8 * sizeScale * healthPercent, 0.08 * sizeScale]} />
-                        <meshBasicMaterial color={healthPercent > 0.5 ? "#44ff44" : healthPercent > 0.25 ? "#ffff44" : "#ff4444"} />
+                        <meshBasicMaterial
+                            color={
+                                healthPercent > 0.5
+                                    ? '#44ff44'
+                                    : healthPercent > 0.25
+                                      ? '#ffff44'
+                                      : '#ff4444'
+                            }
+                        />
                     </mesh>
                 </Billboard>
             )}

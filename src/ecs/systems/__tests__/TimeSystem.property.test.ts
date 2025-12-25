@@ -1,9 +1,9 @@
 import * as fc from 'fast-check';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { LIGHTING, TIME } from '@/constants/game';
 import type { TimePhase } from '../../components';
 import { world } from '../../world';
 import { TimeSystem } from '../TimeSystem';
-import { LIGHTING, TIME } from '@/constants/game';
 
 // Helper to create a time entity with proper typing
 function createTimeEntity(hour: number, phase: TimePhase, timeScale = 1) {

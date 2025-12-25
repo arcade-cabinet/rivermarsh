@@ -91,7 +91,8 @@ function spawnNPC(speciesId: string, type: 'predator' | 'prey', playerPos: THREE
     } while (spawnPos.distanceTo(playerPos) < MIN_SPAWN_DISTANCE && attempts < 10);
 
     // Create entity
-    const baseHealth = speciesData.baseHealth + (speciesId === 'orc' ? 2 : speciesId === 'slime' ? -2 : 0);
+    const baseHealth =
+        speciesData.baseHealth + (speciesId === 'orc' ? 2 : speciesId === 'slime' ? -2 : 0);
     const baseDamage = (speciesData as any).damage || 0;
     const damage = baseDamage + (speciesId === 'orc' ? 1 : speciesId === 'slime' ? -1 : 0);
 

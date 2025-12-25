@@ -6,8 +6,8 @@ import * as THREE from 'three';
 import { world } from '@/ecs/world';
 import { combatEvents } from '@/events/combatEvents';
 import { furFragmentShader, furVertexShader } from '@/shaders/fur';
-import { useControlsStore } from '@/stores/useControlsStore';
 import { useGameStore } from '@/stores/gameStore';
+import { useControlsStore } from '@/stores/useControlsStore';
 import { useRivermarsh } from '@/stores/useRivermarsh';
 import { getAudioManager } from '@/utils/audioManager';
 import { setPlayerRef } from '@/utils/testHooks';
@@ -82,7 +82,7 @@ export function Player() {
         return () => {
             world.remove(entity);
         };
-    }, []);
+    }, [playerStats.health, playerStats.maxHealth, playerStats.maxStamina, playerStats.stamina]);
 
     const performAttack = useCallback(() => {
         if (attackCooldownRef.current > 0) {

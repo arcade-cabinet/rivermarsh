@@ -7,7 +7,12 @@ import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
 // New Rivermarsh game components
 import { Combat, GameUI, NPCManager } from '@/components/game';
-import { GyroscopeCamera, MobileActionButtons, SwipeGestures, VirtualJoysticks } from '@/components/mobile';
+import {
+    GyroscopeCamera,
+    MobileActionButtons,
+    SwipeGestures,
+    VirtualJoysticks,
+} from '@/components/mobile';
 import { NPCs } from '@/components/NPCs';
 import { Player } from '@/components/Player';
 import { Resources } from '@/components/Resources';

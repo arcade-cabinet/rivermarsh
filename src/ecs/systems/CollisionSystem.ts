@@ -48,7 +48,8 @@ export function CollisionSystem(delta: number) {
 
         if (distance < collisionDistance) {
             // Collision detected - apply damage
-            const speciesData = PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES];
+            const speciesData =
+                PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES];
             const combatData = entity.combat;
 
             if (speciesData || combatData) {
@@ -59,14 +60,12 @@ export function CollisionSystem(delta: number) {
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
 
                 const baseDamage = combatData ? combatData.damage : (speciesData?.damage ?? 5);
-<<<<<<< HEAD
                 const shieldLevel = useRivermarsh.getState().player.stats.shieldLevel;
-                const finalDamage = Math.max(0, (baseDamage * difficultyMultiplier * bloodMoonMultiplier) - shieldLevel);
-                
-=======
-                const finalDamage = baseDamage * difficultyMultiplier * bloodMoonMultiplier;
+                const finalDamage = Math.max(
+                    0,
+                    baseDamage * difficultyMultiplier * bloodMoonMultiplier - shieldLevel
+                );
 
->>>>>>> 72f070e9 (feat: Integrate Strata, add examples and polish UI)
                 damagePlayer(finalDamage);
 
                 // Apply special effects on hit
@@ -79,13 +78,9 @@ export function CollisionSystem(delta: number) {
                     }
                 }
 
-<<<<<<< HEAD
-                console.log(`Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Shield: -${shieldLevel}, Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
-=======
                 console.log(
-                    `Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`
+                    `Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Shield: -${shieldLevel}, Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`
                 );
->>>>>>> 72f070e9 (feat: Integrate Strata, add examples and polish UI)
             }
         }
     }

@@ -1,6 +1,10 @@
-import { HAPTIC_PATTERNS, hapticFeedback, useMobileConstraints } from '@/hooks/useMobileConstraints';
-import { useControlsStore } from '@/stores/useControlsStore';
 import type React from 'react';
+import {
+    HAPTIC_PATTERNS,
+    hapticFeedback,
+    useMobileConstraints,
+} from '@/hooks/useMobileConstraints';
+import { useControlsStore } from '@/stores/useControlsStore';
 
 const buttonStyle: React.CSSProperties = {
     width: '70px',
@@ -37,7 +41,11 @@ export function MobileActionButtons() {
         setAction(action, active);
         if (active) {
             const pattern =
-                action === 'jump' ? HAPTIC_PATTERNS.jump : action === 'attack' ? HAPTIC_PATTERNS.hit : 10;
+                action === 'jump'
+                    ? HAPTIC_PATTERNS.jump
+                    : action === 'attack'
+                      ? HAPTIC_PATTERNS.hit
+                      : 10;
             hapticFeedback(pattern);
         }
     };
@@ -82,7 +90,6 @@ export function MobileActionButtons() {
                     handleAction('attack', false);
                 }}
                 aria-label="Attack action button"
-                role="button"
                 tabIndex={0}
             >
                 <span style={{ fontSize: '24px', marginBottom: '2px' }}>⚔️</span>
@@ -114,7 +121,6 @@ export function MobileActionButtons() {
                         handleAction('jump', false);
                     }}
                     aria-label="Jump"
-                    role="button"
                     tabIndex={0}
                 >
                     <span style={{ fontSize: '20px', marginBottom: '2px' }}>🚀</span>
@@ -144,7 +150,6 @@ export function MobileActionButtons() {
                         handleAction('interact', false);
                     }}
                     aria-label="Talk"
-                    role="button"
                     tabIndex={0}
                 >
                     <span style={{ fontSize: '20px', marginBottom: '2px' }}>💬</span>
