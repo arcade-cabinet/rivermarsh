@@ -83,8 +83,6 @@ export function WorldEventSystem() {
     }
 }
 
-import { useRivermarsh } from '../../stores/useRivermarsh';
-
 function triggerBossEncounter() {
     const { setMode: setGameMode, setActiveBossId, player } = useGameStore.getState();
     const { setGameMode: setRivermarshMode } = useRivermarsh.getState();

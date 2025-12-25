@@ -111,7 +111,7 @@ export const BossBattleOverlay: React.FC = () => {
                         A
                     </button>
                     <div style={{ marginTop: '8px' }}>ATTACK</div>
-                    <div style={{ fontSize: '12px' }}>{(Math.floor(Math.random() * 3) + 2) + player.level} DMG</div>
+                    <div style={{ fontSize: '12px' }}>{Math.floor(Math.random() * 3) + 2 + player.level} DMG</div>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
