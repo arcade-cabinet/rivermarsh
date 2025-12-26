@@ -11,17 +11,33 @@ export function VirtualJoysticks() {
         return null;
     }
 
+    const leftOffset = `max(0px, ${constraints.safeAreas.left}px)`;
+    const bottomOffset = `max(0px, ${constraints.safeAreas.bottom}px)`;
+
     return (
-        <VirtualJoystick
-            onStart={() => setJoystickActive(true)}
-            onMove={(x, y) => setMovement(-x, -y)}
-            onEnd={() => {
-                setJoystickActive(false);
-                resetMovement();
+        <div
+            style={{
+                position: 'fixed',
+                bottom: bottomOffset,
+                left: leftOffset,
+                width: '50%',
+                height: '50%',
+                zIndex: 999,
+                pointerEvents: 'auto',
+                touchAction: 'none',
             }}
-            size={100}
-            color="white"
-            opacity={0.5}
-        />
+        >
+            <VirtualJoystick
+                onStart={() => setJoystickActive(true)}
+                onMove={(x, y) => setMovement(-x, -y)}
+                onEnd={() => {
+                    setJoystickActive(false);
+                    resetMovement();
+                }}
+                size={100}
+                color="white"
+                opacity={0.5}
+            />
+        </div>
     );
 }

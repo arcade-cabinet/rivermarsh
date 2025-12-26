@@ -209,11 +209,22 @@ export function Player() {
         // Sync mesh to rigid body
         groupRef.current.position.set(position.x, position.y, position.z);
 
+        // Stamina management
+        const consumeStamina = useEngineStore.getState().consumeStamina;
+        const restoreStamina = useEngineStore.getState().restoreStamina;
+
         const horizontalSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
+        if (input.active && horizontalSpeed > 0.5) {
+            const dashStaminaMult = dashAction ? 4 : 1;
+            consumeStamina(5 * delta * dashStaminaMult);
+        } else if (!input.active) {
+            restoreStamina(10 * delta);
+        }
         
         // Update Strata character state
         characterRef.current.state.speed = horizontalSpeed;
         characterRef.current.state.maxSpeed = MAX_SPEED;
+        characterRef.current.state.isAttacking = attackAnimTimerRef.current > 0;
         
         // Use Strata's animation system
         animateCharacter(characterRef.current, time);
