@@ -213,9 +213,12 @@ export function Player() {
         // Update Strata character state
         characterRef.current.state.speed = horizontalSpeed;
         characterRef.current.state.maxSpeed = MAX_SPEED;
+        characterRef.current.state.isAttacking = attackAnimTimerRef.current > 0;
         
         // Use Strata's animation system
-        animateCharacter(characterRef.current, time);
+        animateCharacter(characterRef.current, time, {
+            isAttacking: attackAnimTimerRef.current > 0
+        });
 
         // Update game store
         updatePlayer({
