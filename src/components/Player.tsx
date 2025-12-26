@@ -8,7 +8,6 @@ import { combatEvents } from '@/events/combatEvents';
 import { 
     createCharacter, 
     animateCharacter, 
-    updateFurUniforms,
     type CharacterJoints,
     type CharacterState
 } from '@jbcom/strata';
