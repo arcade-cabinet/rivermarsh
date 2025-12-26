@@ -8,8 +8,7 @@
         "check": "tsc -p tsconfig.build.json --noEmit",
         "build": "tsc -p tsconfig.build.json && vite build",
         "preview": "vite preview",
-        "lint": "biome check src",
-        "format": "biome format --write src",
+        "lint": "eslint . --ext .ts,.tsx",
         "test": "vitest --run",
         "test:watch": "vitest",
         "test:e2e": "playwright test",
@@ -18,9 +17,7 @@
         "cap:sync:android": "cap sync android",
         "cap:open:android": "cap open android",
         "cap:run:android": "cap run android",
-        "build:android": "pnpm run build && cap sync android && cd android && ./gradlew assembleRelease",
-        "docs": "typedoc --skipErrorChecking",
-        "prepare": "husky"
+        "build:android": "pnpm run build && cap sync android && cd android && ./gradlew assembleRelease"
     },
     "dependencies": {
         "@capacitor/android": "^8.0.0",
@@ -43,7 +40,6 @@
         "zustand": "^5.0.9"
     },
     "devDependencies": {
-        "@biomejs/biome": "^2.3.10",
         "@playwright/test": "^1.57.0",
         "@testing-library/jest-dom": "^6.9.1",
         "@testing-library/react": "^16.3.1",
@@ -52,13 +48,15 @@
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
         "@types/three": "^0.182.0",
+        "@typescript-eslint/eslint-plugin": "^8.50.1",
+        "@typescript-eslint/parser": "^8.50.1",
         "@vitejs/plugin-react": "^5.1.2",
         "@vitest/ui": "^4.0.16",
+        "eslint": "^8.57.1",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^7.0.1",
         "fast-check": "^4.4.0",
-        "husky": "^9.1.7",
         "jsdom": "^27.3.0",
-        "lint-staged": "^16.2.7",
-        "typedoc": "^0.28.15",
         "typescript": "^5.9.3",
         "vite": "^7.3.0",
         "vite-plugin-glsl": "^1.5.5",

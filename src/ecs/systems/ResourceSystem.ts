@@ -3,6 +3,7 @@ import { useGameStore } from '@/stores/gameStore';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
+import { getAudioManager } from '../utils/audioManager';
 
 const MAX_RESOURCES = 20;
 const SPAWN_RADIUS = 50;
@@ -134,7 +135,6 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             }
 
             // Play collection sound
-            const { getAudioManager } = require('@/utils/audioManager');
             const audioManager = getAudioManager();
             if (audioManager) {
                 audioManager.playSound('collect', 0.6);
