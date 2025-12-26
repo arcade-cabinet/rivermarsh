@@ -1,7 +1,7 @@
 import { useFrame } from '@react-three/fiber';
 import type { RapierRigidBody } from '@react-three/rapier';
 import { CapsuleCollider, RigidBody } from '@react-three/rapier';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { world } from '@/ecs/world';
 import { combatEvents } from '@/events/combatEvents';
@@ -227,9 +227,7 @@ export function Player() {
         characterRef.current.state.isAttacking = attackAnimTimerRef.current > 0;
         
         // Use Strata's animation system
-        animateCharacter(characterRef.current, time, {
-            isAttacking: attackAnimTimerRef.current > 0
-        });
+        animateCharacter(characterRef.current, time);
 
         // Update game store
         updatePlayer({
