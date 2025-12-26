@@ -1,8 +1,7 @@
-import { DamageNumber, HealthBar, Inventory as RPGInventory, ParticleEmitter } from '@jbcom/strata';
+import { DamageNumber, ParticleEmitter } from '@jbcom/strata';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { useRPGStore } from '../../stores/rpgStore';
 import { combatEvents } from '../../events/combatEvents';
 
 interface DamageIndicator {
@@ -83,7 +82,7 @@ export function Combat() {
                     key={ind.id}
                     position={[ind.position.x, ind.position.y + ind.time * 1.5, ind.position.z]}
                     value={Math.floor(ind.damage)}
-                    critical={ind.damage > 20}
+                    type={ind.damage > 20 ? 'critical' : 'normal'}
                 />
             ))}
 

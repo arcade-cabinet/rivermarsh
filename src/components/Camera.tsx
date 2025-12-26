@@ -33,7 +33,9 @@ export function FollowCamera() {
                 scale: new THREE.Vector3(1, 1, 1),
             },
         });
-        return () => world.remove(entity);
+        return () => {
+            world.remove(entity);
+        };
     }, []);
 
     // Pinch-to-zoom gesture handling (mobile-first)

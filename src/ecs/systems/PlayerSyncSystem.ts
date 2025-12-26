@@ -1,4 +1,4 @@
-import { useRivermarsh as rivermarshStore } from '../../stores/useRivermarsh';
+import { useRPGStore as rivermarshStore } from '../../stores/rpgStore';
 import { world } from '../world';
 
 /**

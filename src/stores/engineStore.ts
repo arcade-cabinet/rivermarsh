@@ -237,7 +237,7 @@ export const useEngineStore = create<GameState>((set) => ({
         distance: 0,
     })),
     saveGame: () => {
-        const state = useGameStore.getState();
+        const state = useEngineStore.getState();
         saveGameUtil({
             position: state.player.position,
             health: state.player.health,

@@ -1,5 +1,5 @@
 import { combatEvents } from '../../events/combatEvents';
-import { useRivermarsh } from '../../stores/useRivermarsh';
+import { useRPGStore } from '../../stores/rpgStore';
 import { world } from '../world';
 
 /**
@@ -27,19 +27,19 @@ export function CombatSystem() {
                 // Damage NPC
                 const npcId = entity.id?.toString() || '';
                 if (npcId) {
-                    useRivermarsh.getState().damageNPC(npcId, damage);
+                    useRPGStore.getState().damageNPC(npcId, damage);
 
                     // Emit damage event for visuals (floating numbers, particles)
                     combatEvents.emitDamageEnemy(npcId, damage, entity.transform!.position.clone());
 
                     // Check if NPC died
-                    const updatedNPC = useRivermarsh.getState().npcs.find((n) => n.id === npcId);
-                    if (updatedNPC && updatedNPC.health === 0) {
+                    const updatedNPC = useRPGStore.getState().npcs.find((n: any) => n.id === npcId);
+                    if (updatedNPC && (updatedNPC.health ?? 0) <= 0) {
                         // Dead!
                         entity.species!.state = 'dead';
                         // Add experience - scaled by NPC difficulty/type in future
-                        useRivermarsh.getState().addExperience(25);
-                        useRivermarsh.getState().addGold(10);
+                        useRPGStore.getState().addExperience(25);
+                        useRPGStore.getState().addGold(10);
                     }
                 }
             }
