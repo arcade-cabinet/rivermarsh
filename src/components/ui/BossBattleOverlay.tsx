@@ -9,7 +9,7 @@ export const BossBattleOverlay: React.FC = () => {
     
     if (mode !== 'boss_battle' || activeBossId === null) return null;
 
-    const bossEntity = world.entities.find(e => e.id === String(activeBossId));
+    const bossEntity = world.entities.find(e => e.id === (activeBossId ? activeBossId.toString() : ''));
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) return null;
 
     const { boss, species, combat } = bossEntity;
