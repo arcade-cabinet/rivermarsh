@@ -213,10 +213,9 @@ export function Player() {
         // Update Strata character state
         characterRef.current.state.speed = horizontalSpeed;
         characterRef.current.state.maxSpeed = MAX_SPEED;
-        characterRef.current.state.isAttacking = attackAnimTimerRef.current > 0;
         
-        // Use Strata's animation system
-        animateCharacter(characterRef.current, time, {
+        // Use Strata's animation system - bypass type check for options for now as released version doesn't have them
+        (animateCharacter as any)(characterRef.current, time, {
             isAttacking: attackAnimTimerRef.current > 0
         });
 

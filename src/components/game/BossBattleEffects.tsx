@@ -13,7 +13,7 @@ export const BossBattleEffects: React.FC = () => {
         if (mode !== 'boss_battle' || activeBossId === null) return;
 
         // activeBossId is number, e.id is number
-        const bossEntity = world.entities.find(e => e.id === activeBossId);
+        const bossEntity = world.entities.find(e => String(e.id) === String(activeBossId));
         if (bossEntity) {
             if (bossEntity.transform) {
                 setBossPosition([
