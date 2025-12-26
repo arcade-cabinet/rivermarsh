@@ -57,136 +57,100 @@ export function GameUI() {
     );
 }
 
+/**
+ * StatsDisplay - Shows RPG-specific stats like skills and affinity
+ * Core stats (health, stamina, gold, XP) are shown in the main HUD
+ */
 function StatsDisplay() {
     const { player } = useRPGStore();
+    const [expanded, setExpanded] = useState(false);
+
+    // Only show skills panel when expanded
+    if (!expanded) {
+        return (
+            <button
+                onClick={() => setExpanded(true)}
+                style={{
+                    position: 'absolute',
+                    top: 180,
+                    left: 20,
+                    background: 'rgba(0, 0, 0, 0.6)',
+                    border: '1px solid rgba(139, 105, 20, 0.6)',
+                    borderRadius: '8px',
+                    padding: '8px 12px',
+                    color: '#DAA520',
+                    fontFamily: 'Inter, sans-serif',
+                    fontSize: '12px',
+                    cursor: 'pointer',
+                    pointerEvents: 'auto',
+                }}
+            >
+                Skills & Stats
+            </button>
+        );
+    }
 
     return (
         <div
             style={{
                 position: 'absolute',
-                top: 20,
+                top: 180,
                 left: 20,
-                background: 'rgba(0, 0, 0, 0.8)',
+                background: 'rgba(0, 0, 0, 0.85)',
                 padding: '15px',
                 borderRadius: '10px',
                 color: '#fff',
                 fontFamily: 'Inter, sans-serif',
-                minWidth: '200px',
+                minWidth: '180px',
                 border: '2px solid rgba(139, 105, 20, 0.8)',
+                pointerEvents: 'auto',
             }}
         >
-            <div
-                style={{
-                    fontSize: '18px',
-                    fontWeight: 'bold',
-                    marginBottom: '10px',
-                    color: '#DAA520',
-                }}
-            >
-                {player.stats.level > 1 ? 'Seasoned ' : ''}Otter Adventurer
-            </div>
-
-            <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '12px', color: '#aaa' }}>Health</div>
-                <div
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                <div style={{ fontSize: '14px', fontWeight: 'bold', color: '#DAA520' }}>
+                    Skills
+                </div>
+                <button
+                    onClick={() => setExpanded(false)}
                     style={{
-                        background: '#333',
-                        height: '20px',
-                        borderRadius: '5px',
-                        overflow: 'hidden',
+                        background: 'transparent',
+                        border: 'none',
+                        color: '#888',
+                        cursor: 'pointer',
+                        fontSize: '16px',
                     }}
                 >
-                    <div
-                        style={{
-                            background: 'linear-gradient(90deg, #ff4444, #ff8888)',
-                            height: '100%',
-                            width: `${(player.stats.health / player.stats.maxHealth) * 100}%`,
-                            transition: 'width 0.3s',
-                        }}
-                    />
-                </div>
-                <div style={{ fontSize: '11px', marginTop: '2px' }}>
-                    {player.stats.health}/{player.stats.maxHealth}
+                    x
+                </button>
+            </div>
+
+            {/* Otter Affinity */}
+            <div style={{ marginBottom: '10px' }}>
+                <div style={{ fontSize: '11px', color: '#aaa', marginBottom: '3px' }}>Otter Affinity</div>
+                <div style={{ background: '#222', height: '8px', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div style={{
+                        background: 'linear-gradient(90deg, #4444ff, #8888ff)',
+                        height: '100%',
+                        width: `${player.stats.otterAffinity}%`,
+                    }} />
                 </div>
             </div>
 
-            <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '12px', color: '#aaa' }}>Stamina</div>
-                <div
-                    style={{
-                        background: '#333',
-                        height: '20px',
-                        borderRadius: '5px',
-                        overflow: 'hidden',
-                    }}
-                >
-                    <div
-                        style={{
-                            background: 'linear-gradient(90deg, #44ff44, #88ff88)',
-                            height: '100%',
-                            width: `${(player.stats.stamina / player.stats.maxStamina) * 100}%`,
-                            transition: 'width 0.3s',
-                        }}
-                    />
-                </div>
-                <div style={{ fontSize: '11px', marginTop: '2px' }}>
-                    {Math.floor(player.stats.stamina)}/{player.stats.maxStamina}
-                </div>
+            {/* Equipment Levels */}
+            <div style={{ display: 'flex', gap: '12px', marginBottom: '10px', fontSize: '13px' }}>
+                <span title="Sword Level">⚔️ {player.stats.swordLevel}</span>
+                <span title="Shield Level">🛡️ {player.stats.shieldLevel}</span>
+                <span title="Boots Level">🥾 {player.stats.bootsLevel}</span>
             </div>
 
-            <div style={{ marginBottom: '8px' }}>
-                <div style={{ fontSize: '12px', color: '#aaa' }}>Otter Affinity</div>
-                <div
-                    style={{
-                        background: '#333',
-                        height: '20px',
-                        borderRadius: '5px',
-                        overflow: 'hidden',
-                    }}
-                >
-                    <div
-                        style={{
-                            background: 'linear-gradient(90deg, #4444ff, #8888ff)',
-                            height: '100%',
-                            width: `${player.stats.otterAffinity}%`,
-                            transition: 'width 0.3s',
-                        }}
-                    />
-                </div>
-                <div style={{ fontSize: '11px', marginTop: '2px' }}>
-                    {player.stats.otterAffinity}%
-                </div>
-            </div>
-
-            <div style={{ marginBottom: '8px', color: '#FFD700', fontWeight: 'bold' }}>
-                Gold: {player.stats.gold}
-            </div>
-
-            <div
-                style={{
-                    marginTop: '10px',
-                    fontSize: '12px',
-                    borderTop: '1px solid #555',
-                    paddingTop: '8px',
-                }}
-            >
-                <div
-                    style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        marginBottom: '4px',
-                    }}
-                >
-                    <span>Level: {player.stats.level}</span>
-                    <span style={{ color: '#aaa' }}>
-                        XP: {player.stats.experience}/{player.stats.level * 100}
-                    </span>
-                </div>
-                <div style={{ display: 'flex', gap: '10px', color: '#ccc', fontSize: '11px' }}>
-                    <span>⚔️ {player.stats.swordLevel}</span>
-                    <span>🛡️ {player.stats.shieldLevel}</span>
-                    <span>🥾 {player.stats.bootsLevel}</span>
-                </div>
+            {/* Core Skills */}
+            <div style={{ fontSize: '11px', color: '#ccc' }}>
+                {Object.entries(player.stats.skills).slice(0, 4).map(([key, skill]) => (
+                    <div key={key} style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '2px' }}>
+                        <span>{skill.name}</span>
+                        <span style={{ color: '#DAA520' }}>Lv.{skill.level}</span>
+                    </div>
+                ))}
             </div>
         </div>
     );

@@ -79,7 +79,7 @@ function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInvent
 }
 
 export function HUD() {
-    // Game loop stats
+    // All gameplay stats from engineStore (synced with rpgStore)
     const health = useEngineStore((s) => s.player.health);
     const maxHealth = useEngineStore((s) => s.player.maxHealth);
     const stamina = useEngineStore((s) => s.player.stamina);
@@ -87,12 +87,12 @@ export function HUD() {
     const level = useEngineStore((s) => s.player.level);
     const experience = useEngineStore((s) => s.player.experience);
     const expToNext = useEngineStore((s) => s.player.expToNext);
+    const gold = useEngineStore((s) => s.player.gold);
     const nearbyResource = useEngineStore((s) => s.nearbyResource);
     const score = useEngineStore((s) => s.score);
     const distance = useEngineStore((s) => s.distance);
     
-    // UI/Meta stats from useRPGStore
-    const gold = useRPGStore((s) => s.player.stats.gold);
+    // Settings from rpgStore
     const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
     
     const { toggleShop } = useRPGStore();

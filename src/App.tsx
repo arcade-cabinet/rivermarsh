@@ -1,6 +1,6 @@
 import { Canvas } from '@react-three/fiber';
 import { Physics } from '@react-three/rapier';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
 import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
@@ -29,11 +29,15 @@ import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
 import { RacingScene } from '@/features/racing/RacingScene';
 import { useRPGStore } from '@/stores/rpgStore';
+import { initStoreSync } from '@/stores/syncStores';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
 
 // Initialize test hooks for E2E testing
 initTestHooks();
+
+// Initialize store synchronization (bridging engineStore and rpgStore)
+initStoreSync();
 
 interface SceneProps {
     useMobileControls?: boolean;
