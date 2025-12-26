@@ -36,7 +36,6 @@ export function Player() {
         joints: CharacterJoints;
         state: CharacterState;
     } | null>(null);
-    const timeRef = useRef(0);
     const isGroundedRef = useRef(true);
     const lastJumpTime = useRef(0);
     const attackCooldownRef = useRef(0);
@@ -118,13 +117,13 @@ export function Player() {
         }
     }, [playerStats.level]);
 
-    useFrame((_, delta) => {
+    useFrame((state, delta) => {
         if (!rigidBodyRef.current || !groupRef.current || !characterRef.current) {
             return;
         }
 
         const rb = rigidBodyRef.current;
-        const time = _.clock.elapsedTime;
+        const time = state.clock.elapsedTime;
 
         // Update cooldowns
         if (attackCooldownRef.current > 0) {
@@ -209,22 +208,11 @@ export function Player() {
         // Sync mesh to rigid body
         groupRef.current.position.set(position.x, position.y, position.z);
 
-        // Stamina management
-        const consumeStamina = useEngineStore.getState().consumeStamina;
-        const restoreStamina = useEngineStore.getState().restoreStamina;
-
         const horizontalSpeed = Math.sqrt(velocity.x * velocity.x + velocity.z * velocity.z);
-        if (input.active && horizontalSpeed > 0.5) {
-            const dashStaminaMult = dashAction ? 4 : 1;
-            consumeStamina(5 * delta * dashStaminaMult);
-        } else if (!input.active) {
-            restoreStamina(10 * delta);
-        }
         
         // Update Strata character state
         characterRef.current.state.speed = horizontalSpeed;
         characterRef.current.state.maxSpeed = MAX_SPEED;
-        characterRef.current.state.isAttacking = attackAnimTimerRef.current > 0;
         
         // Use Strata's animation system
         animateCharacter(characterRef.current, time);
