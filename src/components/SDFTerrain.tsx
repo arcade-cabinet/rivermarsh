@@ -228,7 +228,7 @@ export function SDFTerrain({
             chunks.forEach((chunk) => chunk.geometry.dispose());
             material.dispose();
         };
-    }, [chunks.forEach, material.dispose]);
+    }, [chunks, material]);
 
     return (
         <group name="sdf-terrain">

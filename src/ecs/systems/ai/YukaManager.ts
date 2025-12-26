@@ -206,7 +206,7 @@ class YukaManagerClass {
      */
     update(delta: number): void {
         // Update Yuka time (converts seconds to Yuka's internal time format)
-        this.time._previousTime = this.time._previousTime;
+        this.time._previousTime = this.time._currentTime;
         this.time._currentTime += delta * 1000; // Yuka uses milliseconds internally
 
         // Update all entities via Yuka's EntityManager

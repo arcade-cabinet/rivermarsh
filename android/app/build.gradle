@@ -28,10 +28,10 @@ android {
         // For CI builds, use debug signing for release builds too (for testing)
         // Production releases should use a proper release keystore
         release {
-            // storeFile file("${System.properties['user.home']}/.android/debug.keystore")
-            // storePassword "android"
-            // keyAlias "androiddebugkey"
-            // keyPassword "android"
+            storeFile file("${System.properties['user.home']}/.android/debug.keystore")
+            storePassword "android"
+            keyAlias "androiddebugkey"
+            keyPassword "android"
         }
     }
     
