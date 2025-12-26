@@ -141,9 +141,9 @@ export interface GameState {
 }
 
 export const useRPGStore = create<GameState>()(
-  persist(
+    persist(
     subscribeWithSelector((set, get) => ({
-    gameMode: 'exploration',
+    gameMode: 'main_menu',
     setGameMode: (mode) => set({ gameMode: mode }),
     player: {
       position: [0, 1, 0],

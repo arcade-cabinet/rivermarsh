@@ -19,6 +19,7 @@ import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
+import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
 import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
@@ -192,6 +193,8 @@ export default function App() {
                     />
                 )}
             </Canvas>
+
+            {gameMode === 'main_menu' && <MainMenu />}
 
             {(gameMode === 'exploration' || gameMode === 'boss_battle') && (
                 <>

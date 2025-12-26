@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { world as ecsWorld } from '@/ecs/world';
 import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { HUD } from '../HUD';
 
 // Mock the ECS world
@@ -53,7 +54,7 @@ vi.mock('@/ecs/world', () => ({
 
 describe('HUD Component', () => {
     beforeEach(() => {
-        // Reset store to initial state
+        // Reset stores to initial state
         useEngineStore.setState({
             player: {
                 health: 100,
@@ -81,6 +82,32 @@ describe('HUD Component', () => {
             nearbyResource: null,
             score: 0,
             distance: 0,
+        });
+
+        useRPGStore.setState({
+            settings: {
+                showHelp: true,
+                soundEnabled: true,
+                musicEnabled: true,
+                volume: 0.8,
+            },
+            player: {
+                inventory: [],
+                stats: {
+                    health: 100,
+                    maxHealth: 100,
+                    stamina: 100,
+                    maxStamina: 100,
+                    gold: 0,
+                    level: 1,
+                    experience: 0,
+                    otterAffinity: 50,
+                    skills: {},
+                    swordLevel: 0,
+                    shieldLevel: 0,
+                    bootsLevel: 0,
+                },
+            } as any
         });
     });
 
@@ -242,7 +269,7 @@ describe('HUD Component', () => {
             expect(screen.getByText('💧')).toBeInTheDocument();
         });
 
-        it('should hide prompt when resource is collected', () => {
+        it('should hide prompt when resource is collected', async () => {
             useEngineStore.setState({
                 nearbyResource: {
                     name: 'Fish',
@@ -285,10 +312,10 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            // Wait for state update
+            // Wait for state update (interval is 100ms)
             await waitFor(() => {
                 expect(screen.getByText(/2:00 PM - Day/i)).toBeInTheDocument();
-            });
+            }, { timeout: 1000 });
         });
 
         it('should capitalize phase names', () => {
@@ -314,7 +341,7 @@ describe('HUD Component', () => {
 
             await waitFor(() => {
                 expect(screen.getByText(/12:00 AM - Night/i)).toBeInTheDocument();
-            });
+            }, { timeout: 1000 });
         });
 
         it('should handle noon (hour 12) as 12 PM', async () => {
@@ -333,7 +360,7 @@ describe('HUD Component', () => {
 
             await waitFor(() => {
                 expect(screen.getByText(/12:00 PM - Day/i)).toBeInTheDocument();
-            });
+            }, { timeout: 1000 });
         });
     });
 
@@ -349,7 +376,7 @@ describe('HUD Component', () => {
 
             const { container } = render(<HUD />);
 
-            // Check for vignette element
+            // Check for vignette element (radial-gradient)
             const vignette = container.querySelector('[style*="radial-gradient"]');
             expect(vignette).not.toBeInTheDocument();
         });
@@ -407,10 +434,6 @@ describe('HUD Component', () => {
 
             expect(screen.queryByText('PAUSED')).not.toBeInTheDocument();
         });
-
-        // Note: Testing ESC key and pause menu interaction would require
-        // more complex setup with user events and state management.
-        // This is better tested in E2E tests.
     });
 
     describe('Edge Cases', () => {
@@ -425,7 +448,7 @@ describe('HUD Component', () => {
 
             render(<HUD />);
 
-            // Should not crash, NaN should be handled
+            // Should not crash
             const healthBar = screen.getByTestId('health-bar-fill');
             expect(healthBar).toBeInTheDocument();
         });
@@ -443,6 +466,7 @@ describe('HUD Component', () => {
 
             const healthBar = screen.getByTestId('health-bar-fill');
             expect(healthBar).toBeInTheDocument();
+            expect(healthBar).toHaveStyle({ width: '0%' });
         });
 
         it('should handle health exceeding maxHealth', () => {

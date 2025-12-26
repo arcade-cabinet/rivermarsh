@@ -4,12 +4,13 @@ import { useRPGStore } from '@/stores/rpgStore';
 import { useEffect, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
+
 // Note: Don't use strata's HealthBar here - it's a 3D component that requires Canvas context
 // Using a simple HTML-based progress bar instead
 interface SimpleBarProps {
     value: number;
     maxValue: number;
-    width?: number;
+    width?: number | string;
     height?: number;
     fillColor?: string;
     backgroundColor?: string;
@@ -20,14 +21,16 @@ interface SimpleBarProps {
 function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style, testId }: SimpleBarProps) {
     const percentage = maxValue > 0 ? Math.min(100, Math.max(0, (value / maxValue) * 100)) : 0;
     return (
-        <div style={{ 
-            width, 
-            height, 
-            backgroundColor, 
-            borderRadius: height / 2,
-            overflow: 'hidden',
-            ...style 
-        }}>
+        <div 
+            style={{ 
+                width, 
+                height, 
+                backgroundColor, 
+                borderRadius: height / 2,
+                overflow: 'hidden',
+                ...style 
+            }}
+        >
             <div 
                 data-testid={testId}
                 style={{
@@ -54,7 +57,7 @@ interface SimpleInventoryProps {
     style?: React.CSSProperties;
 }
 
-function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInventoryProps) {
+function RPGInventory({ slots = [], columns = 5, slotSize = 44, style }: SimpleInventoryProps) {
     return (
         <div style={{ 
             display: 'flex', 
@@ -63,41 +66,46 @@ function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInvent
             maxWidth: columns * (slotSize + 4),
             ...style 
         }}>
-            {slots.slice(0, columns).map((item, i) => (
-                <div key={i} style={{
-                    width: slotSize,
-                    height: slotSize,
-                    background: 'rgba(0,0,0,0.4)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    fontSize: '20px',
-                }}>
-                    {item?.quantity ? `${item.quantity}` : ''}
-                </div>
-            ))}
+            {Array.from({ length: columns }).map((_, i) => {
+                const item = slots[i];
+                return (
+                    <div key={i} style={{
+                        width: slotSize,
+                        height: slotSize,
+                        background: 'rgba(0,0,0,0.4)',
+                        border: '1px solid rgba(255,255,255,0.2)',
+                        borderRadius: '4px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '20px',
+                    }}>
+                        {item?.quantity ? `${item.quantity}` : ''}
+                    </div>
+                );
+            })}
         </div>
     );
 }
 
 export function HUD() {
     // All gameplay stats from engineStore (synced with rpgStore)
-    const health = useEngineStore((s) => s.player.health);
-    const maxHealth = useEngineStore((s) => s.player.maxHealth);
-    const stamina = useEngineStore((s) => s.player.stamina);
-    const maxStamina = useEngineStore((s) => s.player.maxStamina);
-    const level = useEngineStore((s) => s.player.level);
-    const experience = useEngineStore((s) => s.player.experience);
-    const expToNext = useEngineStore((s) => s.player.expToNext);
-    const gold = useEngineStore((s) => s.player.gold);
+    const health = useEngineStore((s) => s.player?.health ?? 0);
+    const maxHealth = useEngineStore((s) => s.player?.maxHealth ?? 100);
+    const stamina = useEngineStore((s) => s.player?.stamina ?? 0);
+    const maxStamina = useEngineStore((s) => s.player?.maxStamina ?? 100);
+    const level = useEngineStore((s) => s.player?.level ?? 1);
+    const experience = useEngineStore((s) => s.player?.experience ?? 0);
+    const expToNext = useEngineStore((s) => s.player?.expToNext ?? 1000);
+    const gold = useEngineStore((s) => s.player?.gold ?? 0);
+    
     const nearbyResource = useEngineStore((s) => s.nearbyResource);
-    const score = useEngineStore((s) => s.score);
-    const distance = useEngineStore((s) => s.distance);
+    const score = useEngineStore((s) => s.score ?? 0);
+    const distance = useEngineStore((s) => s.distance ?? 0);
     
     // Settings from rpgStore
     const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
+    const inventory = useRPGStore((s) => s.player?.inventory ?? []);
     
     const { toggleShop } = useRPGStore();
     
@@ -111,10 +119,12 @@ export function HUD() {
         const interval = setInterval(() => {
             // Time
             for (const { time } of ecsWorld.with('time')) {
-                setTimeDisplay({
-                    hour: Math.floor(time.hour),
-                    phase: time.phase
-                });
+                if (time) {
+                    setTimeDisplay({
+                        hour: Math.floor(time.hour),
+                        phase: time.phase || 'day'
+                    });
+                }
                 break;
             }
             // Weather
@@ -132,7 +142,7 @@ export function HUD() {
         const { hour, phase } = timeDisplay;
         const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
         const period = hour >= 12 ? 'PM' : 'AM';
-        const phaseCapitalized = phase.charAt(0).toUpperCase() + phase.slice(1);
+        const phaseCapitalized = (phase || 'day').charAt(0).toUpperCase() + (phase || 'day').slice(1);
         return `${displayHour}:00 ${period} - ${phaseCapitalized}`;
     };
 
@@ -195,6 +205,7 @@ export function HUD() {
                         height={4} 
                         fillColor="#fbbf24"
                         style={{ marginTop: '4px' }}
+                        testId="xp-bar-fill"
                     />
                 </div>
                 <div style={{
@@ -209,7 +220,7 @@ export function HUD() {
                     alignItems: 'center',
                     gap: '8px',
                 }}>
-                    💰 {(gold || 0).toLocaleString()}
+                    💰 {gold.toLocaleString()}
                 </div>
             </div>
 
@@ -267,10 +278,8 @@ export function HUD() {
                 <div style={{ marginBottom: '10px' }}>
                     <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Inventory</div>
                     <RPGInventory 
-                        slots={useRPGStore.getState().player.inventory as any} 
+                        slots={inventory} 
                         columns={5}
-                        rows={1}
-                        slotSize={44}
                         style={{ position: 'relative', width: '250px', background: 'transparent', padding: 0 }}
                     />
                 </div>
@@ -385,7 +394,7 @@ export function HUD() {
             </div>
 
             {/* Danger Vignette */}
-            {health / maxHealth < 0.3 && (
+            {maxHealth > 0 && health / maxHealth < 0.3 && (
                 <div style={{
                     position: 'absolute',
                     top: 0,
