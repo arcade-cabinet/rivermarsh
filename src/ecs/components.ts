@@ -125,6 +125,7 @@ export type Entity = {
     isWorld?: boolean; // Singleton for global state
     isNPC?: boolean;
     isResource?: boolean;
+    isCamera?: boolean;
 
     // Components
     transform?: TransformComponent;
@@ -134,6 +135,7 @@ export type Entity = {
     enemyEffect?: EnemyEffectComponent;
     steering?: SteeringComponent;
     resource?: ResourceComponent;
+    audioListener?: boolean;
 
     // Global Singletons (usually on isWorld entity)
     time?: TimeOfDayComponent;

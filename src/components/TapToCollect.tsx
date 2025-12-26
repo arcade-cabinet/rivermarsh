@@ -1,10 +1,11 @@
-import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
 import { world } from '@/ecs/world';
 import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { useThree } from '@react-three/fiber';
 import { useEffect } from 'react';
 import * as THREE from 'three';
 import { getAudioManager } from '@/utils/audioManager';
+import { markFirstResourceCollected } from '@/components/ui/ObjectiveMarker';
 
 const COLLECTION_DISTANCE = 1.5;
 
@@ -55,6 +56,15 @@ export function TapToCollect() {
                     if (entity.resource.staminaRestore > 0) {
                         useEngineStore.getState().restoreStamina(entity.resource.staminaRestore);
                     }
+
+                    // Add to RPG inventory
+                    useRPGStore.getState().addInventoryItem({
+                        id: `resource_${entity.resource.type}_${Date.now()}`,
+                        name: entity.resource.type.charAt(0).toUpperCase() + entity.resource.type.slice(1),
+                        type: 'consumable',
+                        quantity: 1,
+                        description: `A fresh ${entity.resource.type} collected from the wild.`
+                    });
 
                     // Play collection sound
                     const audioManager = getAudioManager();

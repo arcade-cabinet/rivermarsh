@@ -11,6 +11,7 @@ import {
     getEnvironmentalAudio,
     initEnvironmentalAudio,
 } from '@/utils/environmentalAudio';
+import { AmbientAudio, FootstepAudio, WeatherAudio } from '@jbcom/strata';
 
 type InitState = 'idle' | 'initializing' | 'initialized';
 
@@ -71,118 +72,52 @@ export function AudioSystem() {
         };
     }, [camera]);
 
-    useFrame((_, delta) => {
-        const audioManager = getAudioManager();
-        if (!audioManager) {
-            return;
-        }
+    const playerPos = useEngineStore((s) => s.player.position);
+    const isMoving = useEngineStore((s) => s.player.isMoving);
+    const isJumping = useEngineStore((s) => s.player.isJumping);
+    const playerSpeed = useEngineStore((s) => s.player.speed);
+    const playerMaxSpeed = useEngineStore((s) => s.player.maxSpeed);
 
-        const player = useEngineStore.getState().player;
-        const isMoving = player.isMoving;
-        const isRunning = player.stamina > 10 && player.speed / player.maxSpeed > 0.7;
-
-        // Read current biome from ECS and handle biome ambient soundscapes
-        const biomeAmbience = getBiomeAmbience();
-        for (const { biome } of ecsWorld.with('biome')) {
-            if (biome.current !== currentBiome.current) {
-                // Biome changed - crossfade ambient soundscapes
-                const prevBiome = currentBiome.current;
-                currentBiome.current = biome.current;
-
-                // Crossfade: fade out previous biome, fade in new biome
-                if (biomeAmbience) {
-                    biomeAmbience.setVolume(prevBiome as any, 0);
-                    biomeAmbience.setVolume(biome.current as any, 1);
-                }
-
-                // Also play ambient from audio manager (for loaded audio files)
-                audioManager.playAmbient(biome.current);
+    // Update current biome and weather from ECS
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const weatherEntity = ecsWorld.with('weather').entities[0];
+            if (weatherEntity?.weather) {
+                currentWeather.current = weatherEntity.weather.current;
             }
-        }
-
-        // Read current weather from ECS and play synthesized environmental audio
-        const envAudio = getEnvironmentalAudio();
-        for (const { weather } of ecsWorld.with('weather')) {
-            if (weather.current !== currentWeather.current) {
-                // Weather changed - update environmental sounds
-                const prevWeather = currentWeather.current;
-                currentWeather.current = weather.current;
-
-                // Stop previous weather sounds
-                if (envAudio) {
-                    if (prevWeather === 'rain' || prevWeather === 'storm') {
-                        envAudio.stopRain();
-                    }
-                    if (prevWeather === 'storm') {
-                        envAudio.stopWind();
-                    }
-                }
+            const biomeEntity = ecsWorld.with('biome').entities[0];
+            if (biomeEntity?.biome) {
+                currentBiome.current = biomeEntity.biome.current;
             }
+        }, 100);
+        return () => clearInterval(interval);
+    }, []);
 
-            // Play synthesized weather sounds based on current weather and intensity
-            if (envAudio) {
-                if (weather.current === 'rain') {
-                    envAudio.startRain(weather.intensity);
-                } else if (weather.current === 'storm') {
-                    envAudio.startRain(weather.intensity);
-                    envAudio.startWind(weather.intensity);
-
-                    // Random thunder at intervals
-                    const currentTime = Date.now() / 1000;
-                    const thunderInterval = 5 + Math.random() * 10; // 5-15 seconds
-                    if (currentTime - lastThunderTime.current >= thunderInterval) {
-                        lastThunderTime.current = currentTime;
-                        envAudio.playThunder();
-                    }
-                } else {
-                    // Clear weather - ensure sounds are stopped
-                    if (currentWeather.current === 'clear') {
-                        envAudio.stopRain();
-                        envAudio.stopWind();
-                    }
+    return (
+        <>
+            <FootstepAudio
+                position={playerPos}
+                isMoving={isMoving && !isJumping}
+                speed={playerSpeed / playerMaxSpeed}
+                terrainType={
+                    playerPos.y < 0.2
+                        ? 'water'
+                        : getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout()) === 'tundra'
+                          ? 'snow'
+                          : ['mountain', 'desert'].includes(
+                                  getBiomeAtPosition(playerPos.x, playerPos.z, getBiomeLayout())
+                              )
+                            ? 'rock'
+                            : 'grass'
                 }
-            }
-        }
-
-        // Update ambient crossfade
-        audioManager.updateAmbientCrossfade(delta);
-
-        // Play footstep sounds at animation cycle intervals
-        if (isMoving && !player.isJumping) {
-            const cycleSpeed = isRunning ? 15 : 10;
-            const stepInterval = (Math.PI * 2) / cycleSpeed; // Time between steps
-            const currentTime = Date.now() / 1000;
-
-            if (currentTime - lastFootstepTime.current >= stepInterval) {
-                lastFootstepTime.current = currentTime;
-
-                // Determine terrain type at player position
-                const biomeLayout = getBiomeLayout();
-                const biomeType = getBiomeAtPosition(
-                    player.position.x,
-                    player.position.z,
-                    biomeLayout
-                );
-
-                let terrainType: 'grass' | 'rock' | 'water' | 'snow' = 'grass';
-
-                // Determine terrain type based on biome and player height
-                if (player.position.y < 0.2) {
-                    terrainType = 'water';
-                } else if (biomeType === 'tundra') {
-                    terrainType = 'snow';
-                } else if (biomeType === 'mountain' || biomeType === 'desert') {
-                    terrainType = 'rock';
+            />
+            <AmbientAudio biome={currentBiome.current as any} />
+            <WeatherAudio
+                weather={currentWeather.current as any}
+                intensity={
+                    ecsWorld.with('weather').entities[0]?.weather?.intensity ?? 0
                 }
-
-                audioManager.playFootstep(player.position, terrainType);
-            }
-        }
-
-        // NPC sounds are triggered by AI system state changes via events
-        // This avoids iterating all NPCs every frame for better performance
-        // The AI system should trigger NPC sounds via the audio manager on state transitions
-    });
-
-    return null;
+            />
+        </>
+    );
 }

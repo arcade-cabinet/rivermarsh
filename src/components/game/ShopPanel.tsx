@@ -1,3 +1,4 @@
+import { Inventory as RPGInventory } from '@jbcom/strata';
 import { useRPGStore } from '@/stores/rpgStore';
 
 export function ShopPanel() {
@@ -96,49 +97,56 @@ export function ShopPanel() {
                 <div style={{ color: '#FFD700', fontWeight: 'bold' }}>{player.stats.gold} Gold</div>
             </div>
 
-            <div style={{ display: 'grid', gap: '10px', maxHeight: '60vh', overflow: 'auto' }}>
-                {items.map((item) => {
-                    const canAfford = player.stats.gold >= item.cost;
-                    return (
-                        <div
-                            key={item.id}
-                            style={{
-                                background: 'rgba(50, 50, 50, 0.8)',
-                                padding: '15px',
-                                borderRadius: '8px',
-                                border: '1px solid #555',
-                                display: 'flex',
-                                justifyContent: 'space-between',
-                                alignItems: 'center',
-                            }}
-                        >
-                            <div>
-                                <div style={{ fontWeight: 'bold', color: '#DAA520' }}>
-                                    {item.name}
-                                </div>
-                                <div style={{ fontSize: '12px', color: '#ccc' }}>
-                                    {item.description}
-                                </div>
-                            </div>
-                            <button
-                                onClick={() => handleBuy(item)}
-                                disabled={!canAfford}
+            <div style={{ display: 'flex', gap: '20px' }}>
+                <div style={{ flex: 1, display: 'grid', gap: '10px', maxHeight: '60vh', overflow: 'auto' }}>
+                    {items.map((item) => {
+                        const canAfford = player.stats.gold >= item.cost;
+                        return (
+                            <div
+                                key={item.id}
                                 style={{
-                                    padding: '8px 16px',
-                                    background: canAfford ? '#DAA520' : '#555',
-                                    color: canAfford ? '#000' : '#888',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: canAfford ? 'pointer' : 'not-allowed',
-                                    fontWeight: 'bold',
-                                    minWidth: '80px',
+                                    background: 'rgba(50, 50, 50, 0.8)',
+                                    padding: '15px',
+                                    borderRadius: '8px',
+                                    border: '1px solid #555',
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
                                 }}
                             >
-                                {item.cost} G
-                            </button>
-                        </div>
-                    );
-                })}
+                                <div>
+                                    <div style={{ fontWeight: 'bold', color: '#DAA520' }}>
+                                        {item.name}
+                                    </div>
+                                    <div style={{ fontSize: '12px', color: '#ccc' }}>
+                                        {item.description}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleBuy(item)}
+                                    disabled={!canAfford}
+                                    style={{
+                                        padding: '8px 16px',
+                                        background: canAfford ? '#DAA520' : '#555',
+                                        color: canAfford ? '#000' : '#888',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: canAfford ? 'pointer' : 'not-allowed',
+                                        fontWeight: 'bold',
+                                        minWidth: '80px',
+                                    }}
+                                >
+                                    {item.cost} G
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div style={{ width: '200px' }}>
+                    <h3 style={{ fontSize: '16px', color: '#DAA520', marginBottom: '10px' }}>Inventory</h3>
+                    <RPGInventory slots={player.inventory as any} />
+                </div>
             </div>
 
             <button

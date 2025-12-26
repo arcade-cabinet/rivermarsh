@@ -1,8 +1,8 @@
-import { ParticleEmitter } from '@jbcom/strata';
-import { Text } from '@react-three/drei';
+import { DamageNumber, HealthBar, Inventory as RPGInventory, ParticleEmitter } from '@jbcom/strata';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { useRPGStore } from '../../stores/rpgStore';
 import { combatEvents } from '../../events/combatEvents';
 
 interface DamageIndicator {
@@ -79,23 +79,12 @@ export function Combat() {
     return (
         <group>
             {indicators.map((ind) => (
-                <group
+                <DamageNumber
                     key={ind.id}
                     position={[ind.position.x, ind.position.y + ind.time * 1.5, ind.position.z]}
-                >
-                    <Text
-                        fontSize={0.4}
-                        color={ind.damage > 20 ? '#ff4444' : '#ffcc00'}
-                        anchorX="center"
-                        anchorY="middle"
-                        outlineWidth={0.05}
-                        outlineColor="#000000"
-                        fillOpacity={1 - ind.time / 1.5}
-                        outlineOpacity={1 - ind.time / 1.5}
-                    >
-                        {Math.floor(ind.damage)}
-                    </Text>
-                </group>
+                    value={Math.floor(ind.damage)}
+                    critical={ind.damage > 20}
+                />
             ))}
 
             {effects.map((eff) => (
