@@ -1,12 +1,9 @@
 import { Canvas } from '@react-three/fiber';
-// Post-processing effects are handled by Strata's VolumetricEffects
-// import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
 import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-// New Rivermarsh game components
-import { Combat, GameUI, NPCManager } from '@/components/game';
+import { Combat, GameUI, NPCManager, BossBattleEffects } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -23,12 +20,17 @@ import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
 import { Loader } from '@/components/ui/Loader';
 import { Tutorial } from '@/components/ui/Tutorial';
+import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
 import { World } from '@/components/World';
 import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
+import { RacingScene } from '@/features/racing/RacingScene';
+import { useRPGStore } from '@/stores/rpgStore';
+import { BasicStrataExample } from '../examples/BasicStrata';
+import { WeatherExample } from '../examples/WeatherSystem';
 
 // Initialize test hooks for E2E testing
 initTestHooks();
@@ -61,6 +63,7 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
 
                 {/* Rivermarsh NPC system - spawns story NPCs */}
                 {useRPGStoreFeatures && <NPCManager />}
+                {useRPGStoreFeatures && <BossBattleEffects />}
             </Physics>
 
             {/* Use gyroscope camera on mobile, follow camera on desktop */}
@@ -86,11 +89,6 @@ function Scene({ useMobileControls = false, useRPGStoreFeatures = false }: Scene
         </>
     );
 }
-
-import { RacingScene } from '@/features/racing/RacingScene';
-import { useRPGStore } from '@/stores/rpgStore';
-import { BasicStrataExample } from '../examples/BasicStrata';
-import { WeatherExample } from '../examples/WeatherSystem';
 
 export default function App() {
     const constraints = useMobileConstraints();
@@ -190,7 +188,7 @@ export default function App() {
                 )}
             </Canvas>
 
-            {gameMode === 'exploration' && (
+            {(gameMode === 'exploration' || gameMode === 'boss_battle') && (
                 <>
                     {/* Mobile controls - virtual joystick and action buttons */}
                     {constraints.isMobile && (
@@ -212,6 +210,7 @@ export default function App() {
                     <GameOver />
                     <Loader />
                     <Tutorial />
+                    <BossBattleOverlay />
                 </>
             )}
         </>

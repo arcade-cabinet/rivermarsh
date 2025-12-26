@@ -15,6 +15,7 @@ import { SpawnSystem } from '../ecs/systems/SpawnSystem';
 import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
+import { BossBattleSystem } from '../ecs/systems/BossBattleSystem';
 import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
 
@@ -85,6 +86,7 @@ export function GameSystems() {
         CollisionSystem(delta);
         ResourceSystem(playerPos, delta);
         AchievementSystem();
+        BossBattleSystem();
     });
 
     return <AudioSystem />;
