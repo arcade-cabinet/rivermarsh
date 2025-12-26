@@ -1,23 +1,22 @@
 import React, { useEffect } from 'react';
-import { useRPGStore as useGameStore } from '@/stores/rpgStore';
+import { useEngineStore } from '../../stores/engineStore';
 import { world } from '../../ecs/world';
 import { handlePlayerAction } from '../../ecs/systems/BossBattleSystem';
 import { BOSSES } from '../../ecs/data/bosses';
 
 export const BossBattleOverlay: React.FC = () => {
-    const { mode, activeBossId, player } = useGameStore();
+    const { mode, activeBossId, player } = useEngineStore();
     
     if (mode !== 'boss_battle' || activeBossId === null) return null;
 
-    const bossEntity = world.entities.find(e => e.id === activeBossId);
+    const bossEntity = world.entities.find(e => e.id === activeBossId.toString());
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) return null;
 
     const { boss, species, combat } = bossEntity;
-    const bossData = BOSSES[boss.type];
+    const bossData = (BOSSES as any)[boss.type];
 
     const healthPercent = species.maxHealth > 0 ? (species.health / species.maxHealth) * 100 : 0;
 
-    // Keyboard listeners for A and S keys
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (combat.turn !== 'player') return;
@@ -111,7 +110,7 @@ export const BossBattleOverlay: React.FC = () => {
                         A
                     </button>
                     <div style={{ marginTop: '8px' }}>ATTACK</div>
-                    <div style={{ fontSize: '12px' }}>{Math.floor(Math.random() * 3) + 2 + player.level} DMG</div>
+                    <div style={{ fontSize: '12px' }}>DMG: {player.level + 2}</div>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
@@ -147,8 +146,8 @@ export const BossBattleOverlay: React.FC = () => {
                 padding: '10px',
                 borderRadius: '8px'
             }}>
-                <div>HP: {player.health}/{player.maxHealth}</div>
-                <div>MP: {player.mana}/{player.maxMana}</div>
+                <div>HP: {Math.round(player.health)}/{player.maxHealth}</div>
+                <div>MP: {Math.round(player.mana)}/{player.maxMana}</div>
                 <div>LVL: {player.level}</div>
             </div>
         </div>
