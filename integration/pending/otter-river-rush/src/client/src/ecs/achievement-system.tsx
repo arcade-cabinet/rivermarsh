@@ -159,5 +159,5 @@ export function AchievementSystem() {
 }
 
 function showAchievementPopup(name: string) {
-  // TODO: Show visual popup
+  useGameStore.getState().pushAchievement(name);
 }

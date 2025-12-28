@@ -1,6 +1,7 @@
 import React from 'react';
 import { useGameStore } from '../hooks/useGameStore';
 import { GameCanvas } from './game/GameCanvas';
+import { AchievementPopup } from './ui/AchievementPopup';
 import { GameHUD } from './ui/GameHUD';
 import { GameOver } from './ui/GameOver';
 import { MainMenu } from './ui/MainMenu';
@@ -11,6 +12,8 @@ export function App(): React.JSX.Element {
   return (
     <div className="fixed inset-0 w-screen h-screen">
       {status !== 'menu' && <GameCanvas showStats={import.meta.env.DEV} />}
+
+      <AchievementPopup />
 
       {status === 'menu' && <MainMenu />}
       {status === 'playing' && <GameHUD />}

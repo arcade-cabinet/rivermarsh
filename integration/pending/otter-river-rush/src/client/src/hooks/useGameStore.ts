@@ -42,6 +42,9 @@ interface GameState {
   // High scores
   highScore: number;
 
+  // Achievements
+  achievementQueue: string[];
+
   // Actions
   startGame: (mode: GameMode) => void;
   pauseGame: () => void;
@@ -59,6 +62,9 @@ interface GameState {
 
   activatePowerUp: (type: keyof PowerUpState, duration?: number) => void;
   deactivatePowerUp: (type: keyof PowerUpState) => void;
+
+  pushAchievement: (name: string) => void;
+  dismissAchievement: () => void;
 
   updateSettings: (
     settings: Partial<
@@ -93,6 +99,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   musicEnabled: true,
   volume: 0.7,
   highScore: 0,
+  achievementQueue: [],
 
   // Actions
   startGame: (mode) => {
@@ -220,6 +227,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         powerUps: { ...state.powerUps, [type]: 0 },
       };
     }),
+
+  pushAchievement: (name) =>
+    set((state) => ({
+      achievementQueue: [...state.achievementQueue, name],
+    })),
+
+  dismissAchievement: () =>
+    set((state) => ({
+      achievementQueue: state.achievementQueue.slice(1),
+    })),
 
   updateSettings: (settings) => set(() => ({ ...settings })),
 
