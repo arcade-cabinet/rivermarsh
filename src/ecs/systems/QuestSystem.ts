@@ -1,5 +1,5 @@
 import { world } from '../world';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useGameStore } from '@/stores/gameStore';
 import type { QuestObjectiveType, QuestComponent } from '../components';
 
 /**
@@ -19,19 +19,19 @@ export function QuestSystem() {
                 quest.status = 'completed';
 
                 // Grant rewards
-                const rpgStore = useRPGStore.getState();
+                const gameStore = useGameStore.getState();
 
                 if (quest.rewards.experience) {
-                    rpgStore.addExperience(quest.rewards.experience);
+                    gameStore.addExperience(quest.rewards.experience);
                 }
 
                 if (quest.rewards.gold) {
-                    rpgStore.addGold(quest.rewards.gold);
+                    gameStore.addGold(quest.rewards.gold);
                 }
 
                 if (quest.rewards.items) {
                     quest.rewards.items.forEach((itemReward) => {
-                        rpgStore.addInventoryItem({
+                        gameStore.addInventoryItem({
                             id: itemReward.id,
                             name: itemReward.id
                                 .split('_')
@@ -45,8 +45,6 @@ export function QuestSystem() {
                 }
 
                 console.log(`Quest completed: ${quest.title}`);
-                
-                // Show notification if we had a notification system
             }
         }
     }
@@ -83,7 +81,6 @@ export function updateQuestProgress(type: QuestObjectiveType, target: string, am
         
         if (changed) {
             // In a real app, we might want to trigger a store update to refresh UI
-            // Since QuestOverlay will probably read from ECS directly, it's fine.
         }
     }
 }

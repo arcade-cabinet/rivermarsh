@@ -11,9 +11,8 @@ export function QuestOverlay() {
 
     useEffect(() => {
         // Poll for quest changes from ECS world
-        // In a more complex setup, we'd use a reactive system or event bus
         const interval = setInterval(() => {
-            const player = world.with('isPlayer', 'quests').entities[0];
+            const player = world.with('isPlayer').entities[0];
             if (player && player.quests) {
                 const active = player.quests.filter((q) => q.status === 'active');
                 setActiveQuests([...active]);

@@ -124,6 +124,31 @@ export interface WorldEventComponent {
     lastEventTime: number;
 }
 
+export type QuestObjectiveType = 'kill' | 'collect' | 'explore' | 'talk';
+
+export interface QuestObjective {
+    id: string;
+    type: QuestObjectiveType;
+    target: string;
+    requiredAmount: number;
+    currentAmount: number;
+    description: string;
+    isCompleted: boolean;
+}
+
+export interface QuestComponent {
+    id: string;
+    title: string;
+    description: string;
+    status: 'active' | 'completed' | 'failed';
+    objectives: QuestObjective[];
+    rewards: {
+        experience: number;
+        gold: number;
+        items?: { id: string; quantity: number }[];
+    };
+}
+
 export interface BossComponent {
     type: 'dread_hydra' | 'shadow_golem' | 'chaos_drake';
     heads?: number; // for hydra
@@ -166,4 +191,5 @@ export type Entity = {
     biome?: BiomeComponent;
     difficulty?: DifficultyComponent;
     worldEvents?: WorldEventComponent;
+    quests?: QuestComponent[];
 };
