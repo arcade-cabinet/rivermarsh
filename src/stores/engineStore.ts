@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
 import { PLAYER, LEVELING } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
+import { hapticFeedback, HAPTIC_PATTERNS } from '../hooks/useMobileConstraints';
 
 export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
 
@@ -160,6 +161,8 @@ export const useEngineStore = create<GameState>((set, get) => ({
         if (audioManager) {
             audioManager.playSound('damage', 0.5);
         }
+
+        hapticFeedback(HAPTIC_PATTERNS.hit);
         
         return {
             player: {
@@ -243,6 +246,7 @@ export const useEngineStore = create<GameState>((set, get) => ({
             if (audioManager) {
                 audioManager.playSound('level-up' as any, 0.7);
             }
+            hapticFeedback(HAPTIC_PATTERNS.levelUp);
         }
 
         return {
@@ -265,7 +269,12 @@ export const useEngineStore = create<GameState>((set, get) => ({
             gold: state.player.gold + amount,
         },
     })),
-    setGameOver: (gameOver) => set({ gameOver }),
+    setGameOver: (gameOver) => {
+        set({ gameOver });
+        if (gameOver) {
+            hapticFeedback(HAPTIC_PATTERNS.gameOver);
+        }
+    },
     setActiveBossId: (id) => set({ activeBossId: id }),
     setNearbyResource: (resource) => set({ nearbyResource: resource }),
     addScore: (amount) => set((state) => ({ score: state.score + amount })),

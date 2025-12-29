@@ -1,6 +1,8 @@
 import { world as ecsWorld } from '@/ecs/world';
 import { useEngineStore } from '@/stores/engineStore';
 import { useRPGStore } from '@/stores/rpgStore';
+import { useControlsStore } from '@/stores/controlsStore';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
 import { useEffect, useState } from 'react';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
@@ -79,6 +81,8 @@ function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInvent
 }
 
 export function HUD() {
+    const constraints = useMobileConstraints();
+    
     // Game loop stats
     const health = useEngineStore((s) => s.player.health);
     const maxHealth = useEngineStore((s) => s.player.maxHealth);
@@ -168,8 +172,8 @@ export function HUD() {
             {/* Top Left: Player Level & Gold */}
             <div style={{
                 position: 'absolute',
-                top: '20px',
-                left: '20px',
+                top: `max(20px, ${constraints.safeAreas.top}px)`,
+                left: `max(20px, ${constraints.safeAreas.left}px)`,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '5px',
@@ -212,8 +216,8 @@ export function HUD() {
             {/* Top Right: Time, Weather, Pause */}
             <div style={{
                 position: 'absolute',
-                top: '20px',
-                right: '20px',
+                top: `max(20px, ${constraints.safeAreas.top}px)`,
+                right: `max(20px, ${constraints.safeAreas.right}px)`,
                 display: 'flex',
                 alignItems: 'center',
                 gap: '15px',
@@ -253,8 +257,8 @@ export function HUD() {
             {/* Bottom Left: Health & Stamina */}
             <div style={{
                 position: 'absolute',
-                bottom: '40px',
-                left: '20px',
+                bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
+                left: `max(20px, ${constraints.safeAreas.left}px)`,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '12px',
@@ -334,8 +338,8 @@ export function HUD() {
             {/* Bottom Right: Score & Distance */}
             <div style={{
                 position: 'absolute',
-                bottom: '40px',
-                right: '20px',
+                bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
+                right: `max(20px, ${constraints.safeAreas.right}px)`,
                 textAlign: 'right',
                 color: '#fff',
             }}>
@@ -346,27 +350,42 @@ export function HUD() {
             {/* Center Bottom: Help Text / Nearby Resource */}
             <div style={{
                 position: 'absolute',
-                bottom: '20px',
+                bottom: `max(20px, ${constraints.safeAreas.bottom}px)`,
                 left: '50%',
                 transform: 'translateX(-50%)',
                 textAlign: 'center',
             }}>
                 {nearbyResource ? (
-                    <div style={{
-                        background: 'rgba(0,0,0,0.8)',
-                        border: '2px solid #d4af37',
-                        borderRadius: '8px',
-                        padding: '10px 20px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '12px',
-                        marginBottom: '20px',
-                        pointerEvents: 'auto',
-                    }}>
-                        <span style={{ fontSize: '24px' }}>{nearbyResource.icon}</span>
+                    <div 
+                        onClick={() => {
+                            // If mobile, allow tapping the resource indicator to collect
+                            if (constraints.isMobile) {
+                                // ResourceSystem handles proximity collection automatically
+                                // but we could trigger an interact action here if needed.
+                                useControlsStore.getState().setAction('interact', true);
+                                setTimeout(() => useControlsStore.getState().setAction('interact', false), 100);
+                            }
+                        }}
+                        style={{
+                            background: 'rgba(0,0,0,0.8)',
+                            border: '2px solid #d4af37',
+                            borderRadius: '8px',
+                            padding: '12px 24px',
+                            minHeight: '44px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            marginBottom: '20px',
+                            pointerEvents: 'auto',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        <span style={{ fontSize: '28px' }}>{nearbyResource.icon}</span>
                         <div style={{ textAlign: 'left' }}>
                             <div style={{ color: '#fff', fontWeight: 'bold' }}>{nearbyResource.name}</div>
-                            <div style={{ color: '#d4af37', fontSize: '12px' }}>Tap to collect</div>
+                            <div style={{ color: '#d4af37', fontSize: '14px' }}>
+                                {constraints.isMobile ? 'Tap to collect' : 'Press E to collect'}
+                            </div>
                         </div>
                     </div>
                 ) : (
