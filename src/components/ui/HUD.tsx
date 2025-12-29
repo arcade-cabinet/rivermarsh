@@ -15,26 +15,32 @@ interface SimpleBarProps {
     fillColor?: string;
     backgroundColor?: string;
     style?: React.CSSProperties;
+    testId?: string;
 }
 
-function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style }: SimpleBarProps) {
+function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style, testId }: SimpleBarProps) {
     const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
     return (
-        <div style={{ 
-            width, 
-            height, 
-            backgroundColor, 
-            borderRadius: height / 2,
-            overflow: 'hidden',
-            ...style 
-        }}>
-            <div style={{
-                width: `${percentage}%`,
-                height: '100%',
-                backgroundColor: fillColor,
+        <div 
+            style={{ 
+                width, 
+                height, 
+                backgroundColor, 
                 borderRadius: height / 2,
-                transition: 'width 0.2s ease-out',
-            }} />
+                overflow: 'hidden',
+                ...style 
+            }}
+        >
+            <div 
+                data-testid={testId}
+                style={{
+                    width: `${percentage}%`,
+                    height: '100%',
+                    backgroundColor: fillColor,
+                    borderRadius: height / 2,
+                    transition: 'width 0.2s ease-out',
+                }} 
+            />
         </div>
     );
 }
@@ -201,6 +207,7 @@ export function HUD() {
                         height={4} 
                         fillColor="#fbbf24"
                         style={{ marginTop: '4px' }}
+                        testId="level-bar-fill"
                     />
                 </div>
                 <div style={{
@@ -293,6 +300,7 @@ export function HUD() {
                         width={250} 
                         height={12} 
                         fillColor={health / maxHealth > 0.5 ? '#4ade80' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
+                        testId="health-bar-fill"
                     />
                 </div>
                 {/* Stamina */}
@@ -307,6 +315,7 @@ export function HUD() {
                         width={250} 
                         height={8} 
                         fillColor="#60a5fa"
+                        testId="stamina-bar-fill"
                     />
                 </div>
 
@@ -337,6 +346,7 @@ export function HUD() {
                         width={250} 
                         height={6} 
                         fillColor="#fbbf24"
+                        testId="xp-bar-fill"
                     />
                 </div>
             </div>

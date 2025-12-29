@@ -33,7 +33,8 @@ test.describe('Game Initialization', () => {
             .first();
 
         // Ensure HUD elements are visible
-        await expect(healthBar.or(staminaBar)).toBeVisible();
+        await expect(healthBar).toBeVisible();
+        await expect(staminaBar).toBeVisible();
 
         // At least one should be visible or the canvas should be rendering
         const canvas = page.locator('canvas');

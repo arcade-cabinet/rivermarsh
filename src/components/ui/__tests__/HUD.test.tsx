@@ -1,8 +1,9 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import * as THREE from 'three';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { world as ecsWorld } from '@/ecs/world';
 import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { HUD } from '../HUD';
 
 // Mock the ECS world
@@ -53,35 +54,70 @@ vi.mock('@/ecs/world', () => ({
 
 describe('HUD Component', () => {
     beforeEach(() => {
-        // Reset store to initial state
-        useEngineStore.setState({
-            player: {
-                health: 100,
-                maxHealth: 100,
-                stamina: 100,
-                maxStamina: 100,
-                position: new THREE.Vector3(0, 0, 0),
-                rotation: 0,
-                speed: 0,
-                maxSpeed: 0.15,
-                verticalSpeed: 0,
-                isMoving: false,
-                isJumping: false,
-                invulnerable: false,
-                invulnerableUntil: 0,
-            },
-            nearbyResource: null,
+        // Reset stores to initial state
+        act(() => {
+            useEngineStore.setState({
+                score: 0,
+                distance: 0,
+                nearbyResource: null,
+                player: {
+                    position: new THREE.Vector3(0, 0, 0),
+                    rotation: 0,
+                    speed: 0,
+                    maxSpeed: 0.15,
+                    verticalSpeed: 0,
+                    isMoving: false,
+                    isJumping: false,
+                    speedMultiplier: 1.0,
+                },
+            });
+            useRPGStore.setState({
+                player: {
+                    position: [0, 1, 0],
+                    rotation: [0, 0],
+                    stats: {
+                        health: 100,
+                        maxHealth: 100,
+                        stamina: 100,
+                        maxStamina: 100,
+                        gold: 0,
+                        otterAffinity: 50,
+                        level: 1,
+                        experience: 0,
+                        expToNext: 100,
+                        mana: 20,
+                        maxMana: 20,
+                        damage: 10,
+                        skills: {} as any,
+                        swordLevel: 0,
+                        shieldLevel: 0,
+                        bootsLevel: 0,
+                        invulnerable: false,
+                        invulnerableUntil: 0,
+                    },
+                    inventory: [],
+                    equipped: {},
+                    activeQuests: [],
+                    completedQuests: [],
+                    factionReputation: {} as any,
+                },
+            });
         });
     });
 
     describe('Health and Stamina Bars', () => {
         it('should display health bar with correct percentage', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 50,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 50,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);
@@ -91,12 +127,17 @@ describe('HUD Component', () => {
         });
 
         it('should display stamina bar with correct percentage', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    stamina: 75,
-                    maxStamina: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            stamina: 75,
+                            maxStamina: 100,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);
@@ -107,52 +148,72 @@ describe('HUD Component', () => {
 
         it('should change health bar color based on health level', () => {
             // High health (>50%) - green
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 60,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 60,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             const { rerender } = render(<HUD />);
             let healthBar = screen.getByTestId('health-bar-fill');
-            expect(healthBar).toHaveStyle({ background: '#4ade80' });
+            expect(healthBar).toHaveStyle({ 'background-color': '#4ade80' });
 
             // Medium health (25-50%) - yellow
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 40,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 40,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             rerender(<HUD />);
             healthBar = screen.getByTestId('health-bar-fill');
-            expect(healthBar).toHaveStyle({ background: '#fbbf24' });
+            expect(healthBar).toHaveStyle({ 'background-color': '#fbbf24' });
 
             // Low health (<25%) - red
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 20,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 20,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             rerender(<HUD />);
             healthBar = screen.getByTestId('health-bar-fill');
-            expect(healthBar).toHaveStyle({ background: '#ef4444' });
+            expect(healthBar).toHaveStyle({ 'background-color': '#ef4444' });
         });
 
         it('should handle edge case of 0 health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 0,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 0,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);
@@ -162,12 +223,17 @@ describe('HUD Component', () => {
         });
 
         it('should handle edge case of full health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 100,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 100,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);
@@ -329,12 +395,17 @@ describe('HUD Component', () => {
 
     describe('Danger Vignette', () => {
         it('should not show vignette when health is above 30%', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 50,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 50,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             const { container } = render(<HUD />);
@@ -345,12 +416,17 @@ describe('HUD Component', () => {
         });
 
         it('should show vignette when health is below 30%', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 25,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 25,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             const { container } = render(<HUD />);
@@ -361,12 +437,17 @@ describe('HUD Component', () => {
         });
 
         it('should show vignette at exactly 29% health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 29,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 29,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             const { container } = render(<HUD />);
@@ -376,12 +457,17 @@ describe('HUD Component', () => {
         });
 
         it('should not show vignette at exactly 30% health', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 30,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 30,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             const { container } = render(<HUD />);
@@ -405,12 +491,17 @@ describe('HUD Component', () => {
 
     describe('Edge Cases', () => {
         it('should handle maxHealth of 0 gracefully', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 0,
-                    maxHealth: 0,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 0,
+                            maxHealth: 0,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);
@@ -421,12 +512,17 @@ describe('HUD Component', () => {
         });
 
         it('should handle negative health gracefully', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: -10,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: -10,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);
@@ -436,12 +532,17 @@ describe('HUD Component', () => {
         });
 
         it('should handle health exceeding maxHealth', () => {
-            useEngineStore.setState({
-                player: {
-                    ...useEngineStore.getState().player,
-                    health: 150,
-                    maxHealth: 100,
-                },
+            act(() => {
+                useRPGStore.setState({
+                    player: {
+                        ...useRPGStore.getState().player,
+                        stats: {
+                            ...useRPGStore.getState().player.stats,
+                            health: 150,
+                            maxHealth: 100,
+                        }
+                    },
+                });
             });
 
             render(<HUD />);

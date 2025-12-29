@@ -7,10 +7,12 @@
 
 import type * as THREE from 'three';
 import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 
 declare global {
     interface Window {
         __GAME_STORE__: typeof useEngineStore;
+        __RPG_STORE__: typeof useRPGStore;
         __PLAYER_REF__: THREE.Object3D | null;
         __GAME_READY__: boolean;
         __JS_ERRORS__: string[];
@@ -26,8 +28,9 @@ export function initTestHooks() {
         return;
     }
 
-    // Expose Zustand store
+    // Expose Zustand stores
     window.__GAME_STORE__ = useEngineStore;
+    window.__RPG_STORE__ = useRPGStore;
 
     // Initialize player ref (will be set by Player component)
     window.__PLAYER_REF__ = null;

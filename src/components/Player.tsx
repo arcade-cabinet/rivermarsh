@@ -46,6 +46,7 @@ export function Player() {
     const playerStats = useRPGStore((s) => s.player.stats);
     const dashAction = useControlsStore((state) => state.actions.dash);
     const updatePlayer = useEngineStore((s) => s.updatePlayer);
+    const setDistance = useEngineStore((s) => s.setDistance);
     const takeDamage = useRPGStore((s) => s.takeDamage);
 
     // Create Strata character
@@ -226,6 +227,12 @@ export function Player() {
             verticalSpeed: velocity.y,
             isJumping: !isGrounded,
         });
+
+        // Update distance traveled
+        if (horizontalSpeed > 0.5) {
+            const currentDistance = useEngineStore.getState().distance;
+            setDistance(currentDistance + horizontalSpeed * delta);
+        }
     });
 
     // Expose player ref
