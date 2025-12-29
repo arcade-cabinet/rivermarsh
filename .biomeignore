@@ -1,0 +1,6 @@
+integration/
+dist/
+node_modules/
+android/
+ios/
+docs/api/

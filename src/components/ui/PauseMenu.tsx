@@ -1,12 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import type React from 'react';
+import { useEffect, useRef } from 'react';
 
 interface PauseMenuProps {
     onResume: () => void;
     onSettings?: () => void;
+    onShop?: () => void;
     onQuit?: () => void;
 }
 
-export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
+export function PauseMenu({ onResume, onSettings, onShop, onQuit }: PauseMenuProps) {
     const resumeButtonRef = useRef<HTMLButtonElement>(null);
 
     useEffect(() => {
@@ -45,7 +47,7 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
     };
 
     return (
-        <div 
+        <div
             role="dialog"
             aria-modal="true"
             aria-labelledby="pause-menu-title"
@@ -66,7 +68,7 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
                 pointerEvents: 'auto',
             }}
         >
-            <h2 
+            <h2
                 id="pause-menu-title"
                 style={{
                     color: '#d4af37',
@@ -79,12 +81,14 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
             >
                 PAUSED
             </h2>
-            
-            <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '15px',
-            }}>
+
+            <div
+                style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '15px',
+                }}
+            >
                 <button
                     ref={resumeButtonRef}
                     onClick={onResume}
@@ -94,6 +98,15 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
                     aria-label="Resume game"
                 >
                     Resume
+                </button>
+                <button
+                    onClick={onShop}
+                    style={menuButtonStyle}
+                    onMouseEnter={(e) => handleButtonHover(e, true)}
+                    onMouseLeave={(e) => handleButtonHover(e, false)}
+                    aria-label="Open shop"
+                >
+                    Shop
                 </button>
                 <button
                     onClick={onSettings}
@@ -131,14 +144,16 @@ export function PauseMenu({ onResume, onSettings, onQuit }: PauseMenuProps) {
                 </button>
             </div>
 
-            <div style={{
-                position: 'absolute',
-                bottom: '40px',
-                color: 'rgba(255, 255, 255, 0.3)',
-                fontSize: '12px',
-                fontFamily: 'sans-serif',
-                letterSpacing: '1px',
-            }}>
+            <div
+                style={{
+                    position: 'absolute',
+                    bottom: '40px',
+                    color: 'rgba(255, 255, 255, 0.3)',
+                    fontSize: '12px',
+                    fontFamily: 'sans-serif',
+                    letterSpacing: '1px',
+                }}
+            >
                 RIVERMARSH v0.1.0
             </div>
         </div>

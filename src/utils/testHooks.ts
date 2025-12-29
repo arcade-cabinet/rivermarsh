@@ -1,11 +1,11 @@
 /**
  * Test Hooks for E2E Testing
- * 
+ *
  * Exposes game state to the window object for Playwright to access.
  * Only active in development/test builds.
  */
 
-import * as THREE from 'three';
+import type * as THREE from 'three';
 import { useGameStore } from '@/stores/gameStore';
 
 declare global {
@@ -22,17 +22,19 @@ declare global {
  * Call this once when the game initializes
  */
 export function initTestHooks() {
-    if (typeof window === 'undefined') return;
-    
+    if (typeof window === 'undefined') {
+        return;
+    }
+
     // Expose Zustand store
     window.__GAME_STORE__ = useGameStore;
-    
+
     // Initialize player ref (will be set by Player component)
     window.__PLAYER_REF__ = null;
-    
+
     // Game ready flag
     window.__GAME_READY__ = false;
-    
+
     // Capture JavaScript errors
     window.__JS_ERRORS__ = [];
     window.addEventListener('error', (e) => {

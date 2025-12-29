@@ -1,119 +1,258 @@
-import { useRivermarsh } from "@/stores/useRivermarsh";
+import { Inventory as RPGInventory } from '@jbcom/strata';
+import { useGameStore } from '@/stores/gameStore';
 
 export function ShopPanel() {
-  const { player, spendGold, toggleShop, heal, restoreStamina } = useRivermarsh();
+    const {
+        player,
+        spendGold,
+        toggleShop,
+        healPlayer,
+        restoreStamina,
+        addExperience,
+        updatePlayer,
+    } = useGameStore();
 
-  const items = [
-    {
-      id: 'health_potion',
-      name: 'Health Potion',
-      cost: 20,
-      description: 'Restores 50 Health',
-      action: () => heal(50)
-    },
-    {
-      id: 'stamina_tonic',
-      name: 'Stamina Tonic',
-      cost: 15,
-      description: 'Restores 50 Stamina',
-      action: () => restoreStamina(50)
-    },
-    {
-      id: 'otter_treat',
-      name: 'Otter Treat',
-      cost: 50,
-      description: 'A delicious snack. (+50 XP)',
-      action: () => useRivermarsh.getState().addExperience(50)
-    }
-  ];
+    const items = [
+        {
+            id: 'sword',
+            name: 'Sword',
+            cost: 10,
+            description: `+1 attack damage (Level: ${player.swordLevel})`,
+            action: () => updatePlayer({ swordLevel: player.swordLevel + 1 }),
+        },
+        {
+            id: 'shield',
+            name: 'Shield',
+            cost: 8,
+            description: `-1 enemy damage (Level: ${player.shieldLevel})`,
+            action: () => updatePlayer({ shieldLevel: player.shieldLevel + 1 }),
+        },
+        {
+            id: 'boots',
+            name: 'Boots',
+            cost: 5,
+            description: `Negate confusion, +1 gold bonus (Level: ${player.bootsLevel})`,
+            action: () => updatePlayer({ bootsLevel: player.bootsLevel + 1 }),
+        },
+        {
+            id: 'health_potion',
+            name: 'Health Potion',
+            cost: 20,
+            description: 'Restores 50 Health',
+            action: () => healPlayer(50),
+        },
+        {
+            id: 'stamina_tonic',
+            name: 'Stamina Tonic',
+            cost: 15,
+            description: 'Restores 50 Stamina',
+            action: () => restoreStamina(50),
+        },
+        {
+            id: 'otter_treat',
+            name: 'Otter Treat',
+            cost: 50,
+            description: 'A delicious snack. (+50 XP)',
+            action: () => addExperience(50),
+        },
+    ];
 
-  const handleBuy = (item: typeof items[0]) => {
-    if (spendGold(item.cost)) {
-      item.action();
-      // TODO: On successful purchase, show a brief success animation (e.g., item row highlight/particle sparkle) and play a short "coin" purchase sound; consider adding distinct feedback for failed purchases when spendGold returns false.
-    }
-  };
+    const handleBuy = (item: (typeof items)[0]) => {
+        if (spendGold(item.cost)) {
+            item.action();
+            // TODO: Play sound effect here once Audio system is unified
+        }
+    };
 
-  return (
-    <div
-      style={{
-        position: "absolute",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        background: "rgba(0, 0, 0, 0.95)",
-        padding: "30px",
-        borderRadius: "15px",
-        color: "#fff",
-        fontFamily: "Inter, sans-serif",
-        minWidth: "400px",
-        maxWidth: "600px",
-        border: "3px solid #DAA520",
-        pointerEvents: "auto",
-        zIndex: 1000,
-      }}
-    >
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px" }}>
-        <h2 style={{ margin: 0, color: "#DAA520", fontSize: "24px", fontFamily: "Cinzel, serif" }}>River Market</h2>
-        <div style={{ color: "#FFD700", fontWeight: "bold" }}>{player.stats.gold} Gold</div>
-      </div>
-
-      <div style={{ display: "grid", gap: "10px", maxHeight: "60vh", overflow: "auto" }}>
-        {items.map((item) => {
-            const canAfford = player.stats.gold >= item.cost;
-            return (
+    return (
+        <div
+            style={{
+                position: 'fixed',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                background: 'rgba(5, 5, 10, 0.95)',
+                backdropFilter: 'blur(15px)',
+                padding: '40px',
+                borderRadius: '12px',
+                color: '#fff',
+                fontFamily: 'Inter, sans-serif',
+                minWidth: '600px',
+                maxWidth: '900px',
+                width: '80%',
+                border: '1px solid rgba(212, 175, 55, 0.3)',
+                boxShadow: '0 20px 60px rgba(0,0,0,0.8)',
+                pointerEvents: 'auto',
+                zIndex: 1500,
+            }}
+        >
             <div
-                key={item.id}
                 style={{
-                background: "rgba(50, 50, 50, 0.8)",
-                padding: "15px",
-                borderRadius: "8px",
-                border: "1px solid #555",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'baseline',
+                    marginBottom: '30px',
+                    borderBottom: '1px solid rgba(212, 175, 55, 0.2)',
+                    paddingBottom: '15px',
                 }}
             >
-                <div>
-                <div style={{ fontWeight: "bold", color: "#DAA520" }}>{item.name}</div>
-                <div style={{ fontSize: "12px", color: "#ccc" }}>{item.description}</div>
-                </div>
-                <button
-                onClick={() => handleBuy(item)}
-                disabled={!canAfford}
-                style={{
-                    padding: "8px 16px",
-                    background: canAfford ? "#DAA520" : "#555",
-                    color: canAfford ? "#000" : "#888",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: canAfford ? "pointer" : "not-allowed",
-                    fontWeight: "bold",
-                    minWidth: "80px",
-                }}
+                <h2
+                    style={{
+                        margin: 0,
+                        color: '#d4af37',
+                        fontSize: '32px',
+                        fontFamily: 'Cinzel, serif',
+                        letterSpacing: '4px',
+                    }}
                 >
-                {item.cost} G
-                </button>
+                    RIVER MARKET
+                </h2>
+                <div
+                    style={{
+                        color: '#ffd700',
+                        fontWeight: 'bold',
+                        fontSize: '20px',
+                        fontFamily: 'Cinzel, serif',
+                        textShadow: '0 0 10px rgba(212, 175, 55, 0.3)',
+                    }}
+                >
+                    💰 {player.gold} <span style={{ fontSize: '12px', opacity: 0.6 }}>GOLD</span>
+                </div>
             </div>
-            );
-        })}
-      </div>
 
-      <button
-        onClick={toggleShop}
-        style={{
-            marginTop: "20px",
-            width: "100%",
-            padding: "10px",
-            background: "transparent",
-            border: "1px solid #555",
-            color: "#aaa",
-            borderRadius: "4px",
-            cursor: "pointer",
-        }}
-      >
-        Close (P)
-      </button>
-    </div>
-  );
+            <div style={{ display: 'flex', gap: '30px' }}>
+                <div
+                    style={{
+                        flex: 1,
+                        display: 'grid',
+                        gap: '12px',
+                        maxHeight: '50vh',
+                        overflow: 'auto',
+                        paddingRight: '10px',
+                    }}
+                >
+                    {items.map((item) => {
+                        const canAfford = player.gold >= item.cost;
+                        return (
+                            <div
+                                key={item.id}
+                                style={{
+                                    background: 'rgba(255, 255, 255, 0.03)',
+                                    padding: '18px 25px',
+                                    borderRadius: '8px',
+                                    border: `1px solid ${canAfford ? 'rgba(255,255,255,0.1)' : 'rgba(239, 68, 68, 0.1)'}`,
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'center',
+                                    transition: 'all 0.2s ease',
+                                }}
+                            >
+                                <div>
+                                    <div
+                                        style={{
+                                            fontWeight: 'bold',
+                                            color: '#d4af37',
+                                            fontSize: '16px',
+                                            letterSpacing: '1px',
+                                        }}
+                                    >
+                                        {item.name}
+                                    </div>
+                                    <div
+                                        style={{
+                                            fontSize: '13px',
+                                            color: '#999',
+                                            marginTop: '4px',
+                                        }}
+                                    >
+                                        {item.description}
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => handleBuy(item)}
+                                    disabled={!canAfford}
+                                    style={{
+                                        padding: '10px 20px',
+                                        background: canAfford
+                                            ? '#d4af37'
+                                            : 'rgba(255,255,255,0.05)',
+                                        color: canAfford ? '#000' : '#555',
+                                        border: 'none',
+                                        borderRadius: '4px',
+                                        cursor: canAfford ? 'pointer' : 'not-allowed',
+                                        fontWeight: 'bold',
+                                        minWidth: '100px',
+                                        fontFamily: 'Cinzel, serif',
+                                        transition: 'all 0.2s ease',
+                                        transform: canAfford ? 'none' : 'none',
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (canAfford) {
+                                            e.currentTarget.style.background = '#e5c05b';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (canAfford) {
+                                            e.currentTarget.style.background = '#d4af37';
+                                        }
+                                    }}
+                                >
+                                    {item.cost} G
+                                </button>
+                            </div>
+                        );
+                    })}
+                </div>
+
+                <div
+                    style={{
+                        width: '220px',
+                        borderLeft: '1px solid rgba(255,255,255,0.1)',
+                        paddingLeft: '20px',
+                    }}
+                >
+                    <h3
+                        style={{
+                            fontSize: '14px',
+                            color: '#d4af37',
+                            marginBottom: '15px',
+                            fontFamily: 'Cinzel, serif',
+                            letterSpacing: '2px',
+                        }}
+                    >
+                        YOUR PACK
+                    </h3>
+                    <RPGInventory slots={player.inventory as any} columns={4} />
+                </div>
+            </div>
+
+            <button
+                onClick={toggleShop}
+                style={{
+                    marginTop: '30px',
+                    width: '100%',
+                    padding: '12px',
+                    background: 'transparent',
+                    border: '1px solid rgba(255,255,255,0.1)',
+                    color: '#666',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    fontFamily: 'Cinzel, serif',
+                    letterSpacing: '2px',
+                    fontSize: '12px',
+                    transition: 'all 0.2s ease',
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(212, 175, 55, 0.4)';
+                    e.currentTarget.style.color = '#999';
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                    e.currentTarget.style.color = '#666';
+                }}
+            >
+                LEAVE MARKET
+            </button>
+        </div>
+    );
 }

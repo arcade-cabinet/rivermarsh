@@ -1,45 +1,44 @@
+import { Canvas } from '@react-three/fiber';
+import { Physics } from '@react-three/rapier';
+import { useEffect, useState } from 'react';
+import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
+import { BossBattleEffects, Combat, GameUI, NPCManager } from '@/components/game';
+import {
+    GyroscopeCamera,
+    MobileActionButtons,
+    SwipeGestures,
+    VirtualJoysticks,
+} from '@/components/mobile';
 import { NPCs } from '@/components/NPCs';
 import { Player } from '@/components/Player';
 import { Resources } from '@/components/Resources';
 import { TapToCollect } from '@/components/TapToCollect';
+import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
+import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
+import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
-import { AchievementOverlay } from '@/components/ui/AchievementOverlay';
-import { EventOverlay } from '@/components/ui/EventOverlay';
 import { Loader } from '@/components/ui/Loader';
+import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
-import { World } from '@/components/World';
 import { VolumetricEffects } from '@/components/VolumetricEffects';
+import { World } from '@/components/World';
+import { RacingScene } from '@/features/racing/RacingScene';
+import { useMobileConstraints } from '@/hooks/useMobileConstraints';
+import { useGameStore } from '@/stores/gameStore';
 import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
-import { Canvas } from '@react-three/fiber';
-// Post-processing effects are handled by Strata's VolumetricEffects
-// import { Bloom, Vignette, DepthOfField } from '@react-three/postprocessing';
-import { Physics } from '@react-three/rapier';
-import * as THREE from 'three';
-import { useEffect, useState } from 'react';
-
-// New Rivermarsh game components
-import { NPCManager, GameUI, Combat } from '@/components/game';
-import { VirtualJoysticks, MobileActionButtons, GyroscopeCamera } from '@/components/mobile';
-
-// Initialize test hooks for E2E testing
-initTestHooks();
-
-// Detect if running on a mobile/touch device
-const isTouchDevice = () => {
-    if (typeof window === 'undefined') return false;
-    return 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-};
+import { BasicStrataExample } from '../examples/BasicStrata';
+import { CombatDemo } from '../examples/CombatDemo';
+import { WeatherExample } from '../examples/WeatherSystem';
 
 interface SceneProps {
     useMobileControls?: boolean;
-    useRivermarshFeatures?: boolean;
 }
 
-function Scene({ useMobileControls = false, useRivermarshFeatures = false }: SceneProps) {
+function Scene({ useMobileControls = false }: SceneProps) {
     useInput();
 
     // Mark game as ready after first frame
@@ -51,7 +50,7 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
     return (
         <>
             <GameSystems />
-            
+
             {/* Physics world wraps all physical objects */}
             <Physics gravity={[0, -15, 0]} timeStep="vary">
                 <World />
@@ -59,11 +58,12 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
                 <NPCs />
                 <Resources />
                 <Combat />
-                
+
                 {/* Rivermarsh NPC system - spawns story NPCs */}
-                {useRivermarshFeatures && <NPCManager />}
+                <NPCManager />
+                <BossBattleEffects />
             </Physics>
-            
+
             {/* Use gyroscope camera on mobile, follow camera on desktop */}
             {useMobileControls ? <GyroscopeCamera /> : <FollowCamera />}
             <TapToCollect />
@@ -75,32 +75,115 @@ function Scene({ useMobileControls = false, useRivermarshFeatures = false }: Sce
                 fogSettings={{
                     color: new THREE.Color(0.6, 0.7, 0.8),
                     density: 0.015,
-                    height: 5
+                    height: 5,
                 }}
                 underwaterSettings={{
                     color: new THREE.Color(0.0, 0.25, 0.4),
                     density: 0.08,
                     causticStrength: 0.4,
-                    waterSurface: 0
+                    waterSurface: 0,
                 }}
             />
         </>
     );
 }
 
-import { RacingScene } from '@/features/racing/RacingScene';
-import { useRivermarsh } from '@/stores/useRivermarsh';
-
 export default function App() {
-    // Detect mobile and enable Rivermarsh features
-    const [isMobile, setIsMobile] = useState(false);
-    // Rivermarsh features enabled by default - can be toggled in settings later
-    const rivermarshEnabled = true;
-    const gameMode = useRivermarsh(state => state.gameMode);
-
     useEffect(() => {
-        setIsMobile(isTouchDevice());
+        // Initialize test hooks for E2E testing
+        initTestHooks();
     }, []);
+
+    const constraints = useMobileConstraints();
+    const [currentExample, setCurrentExample] = useState<'basic' | 'weather' | 'combat'>('basic');
+
+    const gameMode = useGameStore((state) => state.gameMode);
+    const setGameMode = useGameStore((state) => state.setGameMode);
+
+    if (gameMode === 'examples') {
+        return (
+            <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
+                {currentExample === 'basic' && <BasicStrataExample />}
+                {currentExample === 'weather' && <WeatherExample />}
+                {currentExample === 'combat' && <CombatDemo />}
+                <div
+                    style={{
+                        position: 'absolute',
+                        top: 20,
+                        right: 20,
+                        zIndex: 1000,
+                        display: 'flex',
+                        gap: '10px',
+                        background: 'rgba(0, 0, 0, 0.8)',
+                        padding: '15px',
+                        borderRadius: '10px',
+                        border: '2px solid rgba(212, 175, 55, 0.8)',
+                        fontFamily: 'Inter, sans-serif',
+                    }}
+                >
+                    <button
+                        style={{
+                            background:
+                                currentExample === 'basic' ? '#d4af37' : 'rgba(255,255,255,0.1)',
+                            color: currentExample === 'basic' ? '#000' : '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                        }}
+                        onClick={() => setCurrentExample('basic')}
+                    >
+                        Basic Strata
+                    </button>
+                    <button
+                        style={{
+                            background:
+                                currentExample === 'weather' ? '#d4af37' : 'rgba(255,255,255,0.1)',
+                            color: currentExample === 'weather' ? '#000' : '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                        }}
+                        onClick={() => setCurrentExample('weather')}
+                    >
+                        Weather System
+                    </button>
+                    <button
+                        style={{
+                            background:
+                                currentExample === 'combat' ? '#d4af37' : 'rgba(255,255,255,0.1)',
+                            color: currentExample === 'combat' ? '#000' : '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                        }}
+                        onClick={() => setCurrentExample('combat')}
+                    >
+                        Combat Demo
+                    </button>
+                    <button
+                        style={{
+                            background: '#8b0000',
+                            color: '#fff',
+                            border: 'none',
+                            padding: '8px 16px',
+                            borderRadius: '5px',
+                            cursor: 'pointer',
+                            fontWeight: 'bold',
+                        }}
+                        onClick={() => setGameMode('main_menu')}
+                    >
+                        Back to Menu
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <>
@@ -117,20 +200,20 @@ export default function App() {
                 {gameMode === 'racing' ? (
                     <RacingScene />
                 ) : (
-                    <Scene
-                        useMobileControls={isMobile}
-                        useRivermarshFeatures={rivermarshEnabled}
-                    />
+                    <Scene useMobileControls={constraints.isMobile} />
                 )}
             </Canvas>
 
-            {gameMode === 'exploration' && (
+            {gameMode === 'main_menu' && <MainMenu />}
+
+            {(gameMode === 'exploration' || gameMode === 'boss_battle') && (
                 <>
                     {/* Mobile controls - virtual joystick and action buttons */}
-                    {isMobile && (
+                    {constraints.isMobile && (
                         <>
                             <VirtualJoysticks />
                             <MobileActionButtons />
+                            <SwipeGestures />
                         </>
                     )}
 
@@ -140,11 +223,12 @@ export default function App() {
                     <EventOverlay />
 
                     {/* Rivermarsh game UI - inventory, quests, dialogue */}
-                    {rivermarshEnabled && <GameUI />}
+                    <GameUI />
 
                     <GameOver />
                     <Loader />
                     <Tutorial />
+                    <BossBattleOverlay />
                 </>
             )}
         </>

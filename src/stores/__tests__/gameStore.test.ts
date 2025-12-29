@@ -1,4 +1,5 @@
 import * as fc from 'fast-check';
+import * as THREE from 'three';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { useGameStore } from '../gameStore';
 
@@ -7,25 +8,45 @@ describe('GameStore', () => {
         // Reset store to initial state
         useGameStore.setState({
             player: {
-                position: { x: 0, y: 0, z: 0 },
+                position: new THREE.Vector3(0, 0, 0),
                 health: 100,
+                maxHealth: 100,
                 stamina: 100,
+                maxStamina: 100,
+                mana: 20,
+                maxMana: 20,
+                gold: 100,
+                level: 1,
+                experience: 0,
+                expToNext: 100,
+                otterAffinity: 50,
+                swordLevel: 0,
+                shieldLevel: 0,
+                bootsLevel: 0,
+                skills: {} as any,
+                inventory: [],
+                equipped: {},
+                activeQuests: [],
+                completedQuests: [],
+                factionReputation: {} as any,
+                invulnerable: false,
+                invulnerableUntil: 0,
+                rotation: 0,
+                speed: 0,
+                maxSpeed: 0.15,
+                verticalSpeed: 0,
+                isMoving: false,
+                isJumping: false,
             },
             input: {
-                forward: false,
-                backward: false,
-                left: false,
-                right: false,
+                direction: { x: 0, y: 0 },
+                active: false,
                 jump: false,
-                run: false,
             },
-            isGameOver: false,
-        });
+            gameOver: false,
+        } as any);
     });
 
-    // Feature: otterfall-complete, Property 9: Stamina Conservation
-    // For any player state update, if the player is not running, stamina 
-    // should increase or remain constant, never decrease.
     it('Property 9: Stamina Conservation', () => {
         fc.assert(
             fc.property(
@@ -33,20 +54,13 @@ describe('GameStore', () => {
                 fc.float({ min: 0, max: 5, noNaN: true }),
                 (initialStamina, deltaTime) => {
                     // Setup: Set initial stamina
-                    useGameStore.setState({
-                        player: {
-                            position: { x: 0, y: 0, z: 0 },
-                            health: 100,
-                            stamina: initialStamina,
-                        },
-                        input: {
-                            forward: false,
-                            backward: false,
-                            left: false,
-                            right: false,
-                            jump: false,
-                            run: false, // Not running
-                        },
+                    act(() => {
+                        useGameStore.setState((state) => ({
+                            player: {
+                                ...state.player,
+                                stamina: initialStamina,
+                            },
+                        }));
                     });
 
                     const staminaBefore = useGameStore.getState().player.stamina;
@@ -54,11 +68,13 @@ describe('GameStore', () => {
                     // Execute: Simulate stamina regeneration (10 per second when idle)
                     const regenAmount = 10 * deltaTime;
                     const newStamina = Math.min(100, staminaBefore + regenAmount);
-                    useGameStore.setState({
-                        player: {
-                            ...useGameStore.getState().player,
-                            stamina: newStamina,
-                        },
+                    act(() => {
+                        useGameStore.setState((state) => ({
+                            player: {
+                                ...state.player,
+                                stamina: newStamina,
+                            },
+                        }));
                     });
 
                     const staminaAfter = useGameStore.getState().player.stamina;
@@ -74,110 +90,73 @@ describe('GameStore', () => {
         );
     });
 
-    it('should decrease stamina when running', () => {
-        useGameStore.setState({
-            player: {
-                position: { x: 0, y: 0, z: 0 },
-                health: 100,
-                stamina: 100,
-            },
-            input: {
-                forward: true,
-                backward: false,
-                left: false,
-                right: false,
-                jump: false,
-                run: true, // Running
-            },
-        });
-
-        const staminaBefore = useGameStore.getState().player.stamina;
-
-        // Simulate stamina consumption (5 per second when running)
-        const deltaTime = 1.0;
-        const consumeAmount = 5 * deltaTime;
-        const newStamina = Math.max(0, staminaBefore - consumeAmount);
-
-        useGameStore.setState({
-            player: {
-                ...useGameStore.getState().player,
-                stamina: newStamina,
-            },
-        });
-
-        const staminaAfter = useGameStore.getState().player.stamina;
-
-        // Stamina should decrease when running
-        expect(staminaAfter).toBeLessThan(staminaBefore);
-        expect(staminaAfter).toBeGreaterThanOrEqual(0);
-    });
-
     it('should handle damage correctly', () => {
-        const { damagePlayer } = useGameStore.getState();
-
         // Initial health should be 100
         expect(useGameStore.getState().player.health).toBe(100);
 
         // Apply damage
-        damagePlayer(30);
+        act(() => {
+            useGameStore.getState().damagePlayer(30);
+        });
 
         // Health should decrease
         expect(useGameStore.getState().player.health).toBe(70);
 
-        // Wait for invulnerability to expire (or set invulnerableUntil to past)
-        useGameStore.setState({
-            player: {
-                ...useGameStore.getState().player,
-                invulnerableUntil: 0,
-            },
+        // Reset invulnerability for testing
+        act(() => {
+            useGameStore.setState((state) => ({
+                player: {
+                    ...state.player,
+                    invulnerableUntil: 0,
+                },
+            }));
         });
 
         // Apply more damage
-        damagePlayer(80);
+        act(() => {
+            useGameStore.getState().damagePlayer(80);
+        });
 
         // Health should not go below 0
         expect(useGameStore.getState().player.health).toBe(0);
     });
 
     it('should handle healing correctly', () => {
-        // Test healing logic directly
-        const currentHealth = 50;
-        const maxHealth = 100;
-        
+        act(() => {
+            useGameStore.setState((state) => ({
+                player: {
+                    ...state.player,
+                    health: 50,
+                },
+            }));
+        });
+
         // Heal by 30
-        const afterHeal1 = Math.min(maxHealth, currentHealth + 30);
-        expect(afterHeal1).toBe(80);
-        
+        act(() => {
+            useGameStore.getState().healPlayer(30);
+        });
+        expect(useGameStore.getState().player.health).toBe(80);
+
         // Heal by 50 more (should cap at 100)
-        const afterHeal2 = Math.min(maxHealth, afterHeal1 + 50);
-        expect(afterHeal2).toBe(100);
+        act(() => {
+            useGameStore.getState().healPlayer(50);
+        });
+        expect(useGameStore.getState().player.health).toBe(100);
     });
 
     it('should trigger game over when health reaches zero', () => {
-        const { damagePlayer } = useGameStore.getState();
-
         // Apply fatal damage
-        damagePlayer(100);
+        act(() => {
+            useGameStore.getState().damagePlayer(100);
+        });
 
         // Health should be 0
         expect(useGameStore.getState().player.health).toBe(0);
-
-        // Game over should be triggered (this would be set by the game logic)
-        // For now, just verify health is 0
-        expect(useGameStore.getState().player.health).toBeLessThanOrEqual(0);
-    });
-
-    it('should restore stamina correctly', () => {
-        // Test stamina restoration logic directly
-        const currentStamina = 50;
-        const maxStamina = 100;
-        
-        // Restore by 30
-        const afterRestore1 = Math.min(maxStamina, currentStamina + 30);
-        expect(afterRestore1).toBe(80);
-        
-        // Restore by 50 more (should cap at 100)
-        const afterRestore2 = Math.min(maxStamina, afterRestore1 + 50);
-        expect(afterRestore2).toBe(100);
+        expect(useGameStore.getState().gameOver).toBe(true);
     });
 });
+
+// Helper to simulate act from react
+function act(fn: () => void) {
+    fn();
+}

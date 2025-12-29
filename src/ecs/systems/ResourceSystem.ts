@@ -1,6 +1,7 @@
-import { useGameStore } from '@/stores/gameStore';
 import * as THREE from 'three';
-import { RESOURCES, ResourceType } from '../data/resources';
+import { useGameStore } from '@/stores/gameStore';
+import { getAudioManager } from '../../utils/audioManager';
+import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
 
@@ -12,7 +13,9 @@ const COLLECTION_DISTANCE = 1.5;
 let initialized = false;
 
 export function initializeResources(playerPos: THREE.Vector3) {
-    if (initialized) return;
+    if (initialized) {
+        return;
+    }
 
     const biome = getCurrentBiome();
     const resourceTypes: ResourceType[] = ['fish', 'berries', 'water'];
@@ -20,7 +23,9 @@ export function initializeResources(playerPos: THREE.Vector3) {
     // Spawn resources appropriate for current biome
     for (const type of resourceTypes) {
         const resourceData = RESOURCES[type];
-        if (!resourceData.biomes.includes(biome)) continue;
+        if (!resourceData.biomes.includes(biome)) {
+            continue;
+        }
 
         const count = Math.floor(Math.random() * 3) + 2; // 2-4 of each type
         for (let i = 0; i < count; i++) {
@@ -84,15 +89,15 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
         initializeResources(playerPos);
     }
 
-    const healPlayer = useGameStore.getState().healPlayer;
-    const restoreStamina = useGameStore.getState().restoreStamina;
-    const setNearbyResource = useGameStore.getState().setNearbyResource;
+    const { healPlayer, restoreStamina, setNearbyResource } = useGameStore.getState();
 
     let closestResource: { type: ResourceType; distance: number } | null = null;
 
     // Check for resource collection
     for (const entity of world.with('isResource', 'transform', 'resource')) {
-        if (!entity.transform || !entity.resource) continue;
+        if (!entity.transform || !entity.resource) {
+            continue;
+        }
 
         // Handle respawn
         if (entity.resource.collected) {
@@ -106,14 +111,14 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
 
         // Check collection distance
         const distance = playerPos.distanceTo(entity.transform.position);
-        
+
         // Track closest resource for HUD display
         if (distance < COLLECTION_DISTANCE) {
             if (!closestResource || distance < closestResource.distance) {
                 closestResource = { type: entity.resource.type, distance };
             }
         }
-        
+
         if (distance < COLLECTION_DISTANCE) {
             // Collect resource
             entity.resource.collected = true;
@@ -128,7 +133,6 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             }
 
             // Play collection sound
-            const { getAudioManager } = require('@/utils/audioManager');
             const audioManager = getAudioManager();
             if (audioManager) {
                 audioManager.playSound('collect', 0.6);
@@ -154,7 +158,7 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
     if (resourceCount < MAX_RESOURCES) {
         const biome = getCurrentBiome();
         const resourceTypes: ResourceType[] = ['fish', 'berries', 'water'];
-        const validTypes = resourceTypes.filter(type => RESOURCES[type].biomes.includes(biome));
+        const validTypes = resourceTypes.filter((type) => RESOURCES[type].biomes.includes(biome));
 
         if (validTypes.length > 0) {
             const randomType = validTypes[Math.floor(Math.random() * validTypes.length)];

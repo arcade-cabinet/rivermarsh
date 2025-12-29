@@ -1,3 +1,3 @@
-export { useControlsStore } from './useControlsStore';
-export { useRivermarsh } from './useRivermarsh';
-export type * from './useRivermarsh';
+export { useControlsStore } from './controlsStore';
+export type * from './gameStore';
+export { useGameStore } from './gameStore';

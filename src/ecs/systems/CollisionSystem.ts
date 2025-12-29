@@ -1,6 +1,6 @@
 /**
  * CollisionSystem - Handles game-logic collision events
- * 
+ *
  * Physics collisions are now handled by Rapier (@react-three/rapier).
  * This system only handles game logic like damage from predators.
  */
@@ -25,46 +25,61 @@ export function CollisionSystem(delta: number) {
 
     lastCheckTime = 0;
 
-    const playerPos = useGameStore.getState().player.position;
-    const damagePlayer = useGameStore.getState().damagePlayer;
+    const { player, damagePlayer } = useGameStore.getState();
+    const playerPos = player.position;
 
     // Check collisions with predator NPCs for damage
     for (const entity of world.with('isNPC', 'transform', 'species')) {
-        if (!entity.transform || !entity.species) continue;
+        if (!entity.transform || !entity.species) {
+            continue;
+        }
 
         // Only check predators in attack state
-        if (entity.species.type !== 'predator') continue;
-        if (entity.species.state !== 'attack') continue;
+        if (entity.species.type !== 'predator') {
+            continue;
+        }
+        if (entity.species.state !== 'attack') {
+            continue;
+        }
 
         const distance = playerPos.distanceTo(entity.transform.position);
         const collisionDistance = PLAYER_RADIUS + NPC_RADIUS;
 
         if (distance < collisionDistance) {
             // Collision detected - apply damage
-            const speciesData = PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES];
+            const speciesData =
+                PREDATOR_SPECIES[entity.species.id as keyof typeof PREDATOR_SPECIES];
             const combatData = entity.combat;
-            
+
             if (speciesData || combatData) {
                 // Apply difficulty and event multipliers
                 const worldEntity = world.with('difficulty', 'worldEvents').entities[0];
                 const difficultyMultiplier = worldEntity?.difficulty?.damageMultiplier ?? 1.0;
                 const isBloodMoon = worldEntity?.worldEvents?.activeEvents.includes('blood_moon');
                 const bloodMoonMultiplier = isBloodMoon ? 2.0 : 1.0;
-                
+
                 const baseDamage = combatData ? combatData.damage : (speciesData?.damage ?? 5);
-                const finalDamage = baseDamage * difficultyMultiplier * bloodMoonMultiplier;
-                
+                const shieldLevel = player.shieldLevel;
+                const finalDamage = Math.max(
+                    0,
+                    baseDamage * difficultyMultiplier * bloodMoonMultiplier - shieldLevel
+                );
+
                 damagePlayer(finalDamage);
-                
+
                 // Apply special effects on hit
                 if (entity.enemyEffect?.type === 'curse') {
-                    applyCurse();
+                    if (player.bootsLevel > 0) {
+                        console.log('Curse negated by Boots!');
+                    } else {
+                        applyCurse();
+                    }
                 }
 
-                console.log(`Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`);
+                console.log(
+                    `Hit by ${entity.species.name}! Damage: ${finalDamage.toFixed(1)} (Shield: -${shieldLevel}, Difficulty: ${difficultyMultiplier}x, Blood Moon: ${bloodMoonMultiplier}x)`
+                );
             }
         }
     }
-    
-    // Note: Entity-entity physics collisions are now handled by Rapier
 }
