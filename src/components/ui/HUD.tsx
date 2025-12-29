@@ -111,11 +111,12 @@ export function HUD() {
     const constraints = useMobileConstraints();
     
     // All gameplay stats from unified gameStore
-    // Primitives are safe
     const health = useGameStore((s) => s.player?.health ?? 0);
     const maxHealth = useGameStore((s) => s.player?.maxHealth ?? 100);
     const stamina = useGameStore((s) => s.player?.stamina ?? 0);
     const maxStamina = useGameStore((s) => s.player?.maxStamina ?? 100);
+    const mana = useGameStore((s) => s.player?.mana ?? 0);
+    const maxMana = useGameStore((s) => s.player?.maxMana ?? 100);
     const level = useGameStore((s) => s.player?.level ?? 1);
     const experience = useGameStore((s) => s.player?.experience ?? 0);
     const expToNext = useGameStore((s) => s.player?.expToNext ?? 1000);
@@ -193,8 +194,6 @@ export function HUD() {
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, []);
-
-    const xpPercent = expToNext > 0 ? Math.min(100, Math.max(0, (experience / expToNext) * 100)) : 0;
 
     return (
         <div style={{
@@ -296,7 +295,7 @@ export function HUD() {
             {/* Quest Overlay */}
             <QuestOverlay />
 
-            {/* Bottom Left: Health & Stamina */}
+            {/* Bottom Left: Health & Stamina & Mana */}
             <div style={{
                 position: 'absolute',
                 bottom: `max(40px, ${constraints.safeAreas.bottom + 10}px)`,
@@ -344,6 +343,22 @@ export function HUD() {
                         height={8} 
                         fillColor="#3b82f6"
                         testId="stamina-bar-fill"
+                        style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
+                    />
+                </div>
+                {/* Mana */}
+                <div style={{ transform: 'skewX(-10deg)', marginLeft: '20px' }}>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between', fontFamily: 'Cinzel, serif' }}>
+                        <span>Mana</span>
+                        <span>{Math.round(mana)} / {maxMana}</span>
+                    </div>
+                    <HealthBar 
+                        value={mana} 
+                        maxValue={maxMana} 
+                        width={200} 
+                        height={6} 
+                        fillColor="#a855f7"
+                        testId="mana-bar-fill"
                         style={{ boxShadow: '0 0 10px rgba(0,0,0,0.5)' }}
                     />
                 </div>
