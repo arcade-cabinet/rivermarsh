@@ -111,6 +111,7 @@ export function HUD() {
     const constraints = useMobileConstraints();
     
     // All gameplay stats from unified gameStore
+    // Primitives are safe
     const health = useGameStore((s) => s.player?.health ?? 0);
     const maxHealth = useGameStore((s) => s.player?.maxHealth ?? 100);
     const stamina = useGameStore((s) => s.player?.stamina ?? 0);
@@ -192,6 +193,8 @@ export function HUD() {
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
     }, []);
+
+    const xpPercent = expToNext > 0 ? Math.min(100, Math.max(0, (experience / expToNext) * 100)) : 0;
 
     return (
         <div style={{

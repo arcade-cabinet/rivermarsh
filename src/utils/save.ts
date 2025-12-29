@@ -10,8 +10,11 @@ export interface SaveData {
         stamina: number;
         level: number;
         experience: number;
+<<<<<<< HEAD
         mana?: number;
         gold?: number;
+=======
+>>>>>>> fix/issue-29
     };
     world: {
         time: number;
@@ -33,8 +36,11 @@ export function saveGame(playerState: {
     stamina: number;
     level: number;
     experience: number;
+<<<<<<< HEAD
     mana: number;
     gold: number;
+=======
+>>>>>>> fix/issue-29
 }): void {
     try {
         // Get world state from ECS
@@ -64,8 +70,11 @@ export function saveGame(playerState: {
                 stamina: playerState.stamina,
                 level: playerState.level,
                 experience: playerState.experience,
+<<<<<<< HEAD
                 mana: playerState.mana,
                 gold: playerState.gold,
+=======
+>>>>>>> fix/issue-29
             },
             world: {
                 time: timeHour,
@@ -92,6 +101,7 @@ function isValidSaveData(data: any): data is SaveData {
     }
 
     // Check player
+<<<<<<< HEAD
     if (!data.player || typeof data.player !== 'object') {
         return false;
     }
@@ -135,6 +145,23 @@ function isValidSaveData(data: any): data is SaveData {
     if ((data.player.experience ?? 0) < 0) {
         return false;
     }
+=======
+    if (!data.player || typeof data.player !== 'object') return false;
+    if (!Array.isArray(data.player.position) || data.player.position.length !== 3) return false;
+    if (data.player.position.some((n: any) => typeof n !== 'number')) return false;
+    
+    // Type validation for optional fields (backward compatibility)
+    if (data.player.health !== undefined && typeof data.player.health !== 'number') return false;
+    if (data.player.stamina !== undefined && typeof data.player.stamina !== 'number') return false;
+    if (data.player.level !== undefined && typeof data.player.level !== 'number') return false;
+    if (data.player.experience !== undefined && typeof data.player.experience !== 'number') return false;
+
+    // Range validation to prevent corrupted save data
+    if ((data.player.health ?? 0) < 0) return false;
+    if ((data.player.stamina ?? 0) < 0) return false;
+    if ((data.player.level ?? 1) < 1) return false;
+    if ((data.player.experience ?? 0) < 0) return false;
+>>>>>>> fix/issue-29
 
     // Check world
     if (!data.world || typeof data.world !== 'object') {
