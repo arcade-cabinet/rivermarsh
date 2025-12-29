@@ -121,6 +121,10 @@ export interface GameState {
         expToNext: number;
         otterAffinity: number;
         
+        // Tracking for achievements
+        predatorsKilled: number;
+        totalResourcesCollected: number;
+        
         // Equipment & Skills
         swordLevel: number;
         shieldLevel: number;
@@ -180,6 +184,8 @@ export interface GameState {
     addGold: (amount: number) => void;
     spendGold: (amount: number) => boolean;
     respawn: () => void;
+    incrementResourcesCollected: (amount?: number) => void;
+    incrementPredatorsKilled: () => void;
     
     // RPG Actions
     improveSkill: (skillType: SkillType, experienceAmount: number) => void;
@@ -257,6 +263,8 @@ export const useGameStore = create<GameState>()(
                     experience: 0,
                     expToNext: LEVELING.BASE_XP_REQUIRED,
                     otterAffinity: 50,
+                    predatorsKilled: 0,
+                    totalResourcesCollected: 0,
                     swordLevel: 0,
                     shieldLevel: 0,
                     bootsLevel: 0,
@@ -638,6 +646,11 @@ export const useGameStore = create<GameState>()(
                         get().addGold(10);
                         get().addExperience(20);
                         get().removeNPC(npcId);
+                        
+                        // Tracking for achievements
+                        if (npc.type === 'hostile') {
+                            get().incrementPredatorsKilled();
+                        }
                     }
                 },
 
@@ -647,6 +660,20 @@ export const useGameStore = create<GameState>()(
                 setDistance: (distance) => set({ distance }),
                 setInput: (x, y, active, jump) => set({ input: { direction: { x, y }, active, jump } }),
                 updateSettings: (settings) => set((state) => ({ settings: { ...state.settings, ...settings } })),
+                
+                incrementResourcesCollected: (amount = 1) => set((state) => ({
+                    player: {
+                        ...state.player,
+                        totalResourcesCollected: state.player.totalResourcesCollected + amount,
+                    }
+                })),
+                
+                incrementPredatorsKilled: () => set((state) => ({
+                    player: {
+                        ...state.player,
+                        predatorsKilled: state.player.predatorsKilled + 1,
+                    }
+                })),
             }),
             {
                 name: 'rivermarsh-game-state',
@@ -667,6 +694,8 @@ export const useGameStore = create<GameState>()(
                         swordLevel: state.player.swordLevel,
                         shieldLevel: state.player.shieldLevel,
                         bootsLevel: state.player.bootsLevel,
+                        predatorsKilled: state.player.predatorsKilled,
+                        totalResourcesCollected: state.player.totalResourcesCollected,
                         inventory: state.player.inventory,
                         equipped: state.player.equipped,
                         activeQuests: state.player.activeQuests,
