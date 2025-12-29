@@ -116,17 +116,17 @@ export const BossBattleOverlay: React.FC = () => {
                 <div style={{ textAlign: 'center' }}>
                     <button 
                         onClick={() => handlePlayerAction('spell')}
-                        disabled={combat.turn !== 'player'}
+                        disabled={combat.turn !== 'player' || player.mana < 3}
                         style={{
                             width: '80px',
                             height: '80px',
                             borderRadius: '50%',
                             border: '4px solid #fff',
-                            backgroundColor: combat.turn === 'player' ? '#2196F3' : '#666',
+                            backgroundColor: (combat.turn === 'player' && player.mana >= 3) ? '#2196F3' : '#666',
                             color: 'white',
                             fontSize: '24px',
                             fontWeight: 'bold',
-                            cursor: combat.turn === 'player' ? 'pointer' : 'default',
+                            cursor: (combat.turn === 'player' && player.mana >= 3) ? 'pointer' : 'default',
                             boxShadow: '0 4px 8px rgba(0,0,0,0.5)'
                         }}
                     >

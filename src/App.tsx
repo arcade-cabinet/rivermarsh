@@ -33,6 +33,9 @@ import { useGameStore } from '@/stores/gameStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
 
+// Initialize test hooks for E2E testing
+initTestHooks();
+
 interface SceneProps {
     useMobileControls?: boolean;
 }
@@ -88,84 +91,11 @@ function Scene({ useMobileControls = false }: SceneProps) {
 }
 
 export default function App() {
-    useEffect(() => {
-        // Initialize test hooks for E2E testing
-        initTestHooks();
-    }, []);
-
     const constraints = useMobileConstraints();
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
     
     const gameMode = useGameStore((state) => state.gameMode);
     const setGameMode = useGameStore((state) => state.setGameMode);
-
-    if (gameMode === 'examples') {
-        return (
-            <div style={{ width: '100%', height: '100vh', position: 'relative' }}>
-                {currentExample === 'basic' ? <BasicStrataExample /> : <WeatherExample />}
-                <div
-                    style={{
-                        position: 'absolute',
-                        top: 20,
-                        right: 20,
-                        zIndex: 1000,
-                        display: 'flex',
-                        gap: '10px',
-                        background: 'rgba(0, 0, 0, 0.8)',
-                        padding: '15px',
-                        borderRadius: '10px',
-                        border: '2px solid rgba(212, 175, 55, 0.8)',
-                        fontFamily: 'Inter, sans-serif',
-                    }}
-                >
-                    <button
-                        style={{
-                            background:
-                                currentExample === 'basic' ? '#d4af37' : 'rgba(255,255,255,0.1)',
-                            color: currentExample === 'basic' ? '#000' : '#fff',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                        }}
-                        onClick={() => setCurrentExample('basic')}
-                    >
-                        Basic Strata
-                    </button>
-                    <button
-                        style={{
-                            background:
-                                currentExample === 'weather' ? '#d4af37' : 'rgba(255,255,255,0.1)',
-                            color: currentExample === 'weather' ? '#000' : '#fff',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                        }}
-                        onClick={() => setCurrentExample('weather')}
-                    >
-                        Weather System
-                    </button>
-                    <button
-                        style={{
-                            background: '#8b0000',
-                            color: '#fff',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '5px',
-                            cursor: 'pointer',
-                            fontWeight: 'bold',
-                        }}
-                        onClick={() => setGameMode('main_menu')}
-                    >
-                        Back to Menu
-                    </button>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <>
