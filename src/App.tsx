@@ -28,7 +28,7 @@ import { GameSystems } from '@/systems/GameSystems';
 import { InputZone, useInput } from '@/systems/input';
 import { initTestHooks, setGameReady } from '@/utils/testHooks';
 import { RacingScene } from '@/features/racing/RacingScene';
-import { useRPGStore } from '@/stores/rpgStore';
+import { useEngineStore } from '@/stores/engineStore';
 import { BasicStrataExample } from '../examples/BasicStrata';
 import { WeatherExample } from '../examples/WeatherSystem';
 
@@ -95,8 +95,8 @@ export default function App() {
     const [currentExample, setCurrentExample] = useState<'basic' | 'weather'>('basic');
     // Rivermarsh features enabled by default - can be toggled in settings later
     const rivermarshEnabled = true;
-    const gameMode = useRPGStore((state) => state.gameMode);
-    const setGameMode = useRPGStore((state) => state.setGameMode);
+    const gameMode = useEngineStore((state) => state.mode);
+    const setGameMode = useEngineStore((state) => state.setMode);
 
     if (gameMode === 'examples') {
         return (

@@ -51,10 +51,10 @@ export function TapToCollect() {
 
                     // Apply effects
                     if (entity.resource.healthRestore > 0) {
-                        useEngineStore.getState().healPlayer(entity.resource.healthRestore);
+                        useRPGStore.getState().heal(entity.resource.healthRestore);
                     }
                     if (entity.resource.staminaRestore > 0) {
-                        useEngineStore.getState().restoreStamina(entity.resource.staminaRestore);
+                        useRPGStore.getState().restoreStamina(entity.resource.staminaRestore);
                     }
 
                     // Add to RPG inventory

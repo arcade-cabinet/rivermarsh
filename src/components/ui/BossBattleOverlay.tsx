@@ -1,11 +1,13 @@
 import React, { useEffect } from 'react';
 import { useEngineStore } from '../../stores/engineStore';
+import { useRPGStore } from '../../stores/rpgStore';
 import { world } from '../../ecs/world';
 import { handlePlayerAction } from '../../ecs/systems/BossBattleSystem';
 import { BOSSES } from '../../ecs/data/bosses';
 
 export const BossBattleOverlay: React.FC = () => {
-    const { mode, activeBossId, player } = useEngineStore();
+    const { mode, activeBossId } = useEngineStore();
+    const playerStats = useRPGStore((s) => s.player.stats);
     
     if (mode !== 'boss_battle' || activeBossId === null) return null;
 
@@ -110,7 +112,7 @@ export const BossBattleOverlay: React.FC = () => {
                         A
                     </button>
                     <div style={{ marginTop: '8px' }}>ATTACK</div>
-                    <div style={{ fontSize: '12px' }}>DMG: {player.level + 2}</div>
+                    <div style={{ fontSize: '12px' }}>DMG: {playerStats.level + 2}</div>
                 </div>
 
                 <div style={{ textAlign: 'center' }}>
@@ -146,9 +148,9 @@ export const BossBattleOverlay: React.FC = () => {
                 padding: '10px',
                 borderRadius: '8px'
             }}>
-                <div>HP: {Math.round(player.health)}/{player.maxHealth}</div>
-                <div>MP: {Math.round(player.mana)}/{player.maxMana}</div>
-                <div>LVL: {player.level}</div>
+                <div>HP: {Math.round(playerStats.health)}/{playerStats.maxHealth}</div>
+                <div>MP: {Math.round(playerStats.mana)}/{playerStats.maxMana}</div>
+                <div>LVL: {playerStats.level}</div>
             </div>
         </div>
     );

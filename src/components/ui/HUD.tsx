@@ -2,6 +2,7 @@ import { world as ecsWorld } from '@/ecs/world';
 import { useEngineStore } from '@/stores/engineStore';
 import { useRPGStore } from '@/stores/rpgStore';
 import { useEffect, useState } from 'react';
+import { useShallow } from 'zustand/react/shallow';
 import { PauseMenu } from './PauseMenu';
 import { SettingsPanel } from './SettingsPanel';
 // Note: Don't use strata's HealthBar here - it's a 3D component that requires Canvas context
@@ -79,22 +80,31 @@ function RPGInventory({ slots, columns = 5, slotSize = 44, style }: SimpleInvent
 }
 
 export function HUD() {
-    // Game loop stats
-    const health = useEngineStore((s) => s.player.health);
-    const maxHealth = useEngineStore((s) => s.player.maxHealth);
-    const stamina = useEngineStore((s) => s.player.stamina);
-    const maxStamina = useEngineStore((s) => s.player.maxStamina);
-    const level = useEngineStore((s) => s.player.level);
-    const experience = useEngineStore((s) => s.player.experience);
-    const expToNext = useEngineStore((s) => s.player.expToNext);
-    const nearbyResource = useEngineStore((s) => s.nearbyResource);
-    const score = useEngineStore((s) => s.score);
-    const distance = useEngineStore((s) => s.distance);
-    
-    // UI/Meta stats from useRPGStore
-    const gold = useRPGStore((s) => s.player.stats.gold);
+    // Game session stats from Engine Store
+    const { score, distance, nearbyResource } = useEngineStore(
+        useShallow((s) => ({
+            score: s.score,
+            distance: s.distance,
+            nearbyResource: s.nearbyResource
+        }))
+    );
+
+    // Player stats from RPG Store
+    const { health, maxHealth, stamina, maxStamina, level, experience, expToNext, gold } = useRPGStore(
+        useShallow((s) => ({
+            health: s.player.stats.health,
+            maxHealth: s.player.stats.maxHealth,
+            stamina: s.player.stats.stamina,
+            maxStamina: s.player.stats.maxStamina,
+            level: s.player.stats.level,
+            experience: s.player.stats.experience,
+            expToNext: s.player.stats.expToNext,
+            gold: s.player.stats.gold,
+        }))
+    );
+
     const showHelpSetting = useRPGStore((s) => s.settings?.showHelp ?? true);
-    
+    const inventory = useRPGStore((s) => s.player.inventory);
     const { toggleShop } = useRPGStore();
     
     const [timeDisplay, setTimeDisplay] = useState({ hour: 8, phase: 'day' });
@@ -263,7 +273,7 @@ export function HUD() {
                 <div style={{ marginBottom: '10px' }}>
                     <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px' }}>Inventory</div>
                     <RPGInventory 
-                        slots={useRPGStore.getState().player.inventory as any} 
+                        slots={inventory as any} 
                         columns={5}
                         rows={1}
                         slotSize={44}

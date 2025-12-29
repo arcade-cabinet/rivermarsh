@@ -1,8 +1,15 @@
 import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 
 export function GameOver() {
     const gameOver = useEngineStore((s) => s.gameOver);
-    const respawn = useEngineStore((s) => s.respawn);
+    const engineRespawn = useEngineStore((s) => s.respawn);
+    const rpgRespawn = useRPGStore((s) => s.respawn);
+
+    const handleRespawn = () => {
+        engineRespawn();
+        rpgRespawn();
+    };
 
     if (!gameOver) {
         return null;
@@ -53,7 +60,7 @@ export function GameOver() {
             </p>
 
             <button
-                onClick={respawn}
+                onClick={handleRespawn}
                 style={{
                     padding: '15px 50px',
                     fontSize: '1.2em',

@@ -30,9 +30,7 @@ export function WorldEventSystem() {
                         world.remove(bossEntity);
                     }
                     const { setMode, setActiveBossId } = useEngineStore.getState();
-                    const { setGameMode } = useRPGStore.getState();
                     setMode('exploration');
-                    setGameMode('exploration');
                     setActiveBossId(null);
                 }
 
@@ -87,8 +85,8 @@ export function WorldEventSystem() {
 }
 
 function triggerBossEncounter() {
-    const { setMode: setEngineMode, setActiveBossId, player } = useEngineStore.getState();
-    const { setGameMode: setRPGMode } = useRPGStore.getState();
+    const { setMode: setEngineMode, setActiveBossId } = useEngineStore.getState();
+    const playerStats = useRPGStore.getState().player.stats;
     
     // Check if a boss already exists
     const existingBoss = world.with('isBoss').entities[0];
@@ -99,7 +97,7 @@ function triggerBossEncounter() {
 
     // Pick a boss based on player level
     const bossTypes: ('dread_hydra' | 'shadow_golem' | 'chaos_drake')[] = ['dread_hydra', 'shadow_golem', 'chaos_drake'];
-    const bossType = bossTypes[Math.min((player.level || 1) - 1, bossTypes.length - 1)];
+    const bossType = bossTypes[Math.min((playerStats.level || 1) - 1, bossTypes.length - 1)];
     const bossData = BOSSES[bossType];
 
     // Create boss entity
@@ -140,7 +138,6 @@ function triggerBossEncounter() {
     });
 
     setEngineMode('boss_battle' as any);
-    setRPGMode('boss_battle');
     setActiveBossId(bossEntity.id!);
     console.log(`BOSS ENCOUNTER: ${bossData.name} appeared!`);
 }

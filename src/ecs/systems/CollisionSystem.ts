@@ -27,7 +27,7 @@ export function CollisionSystem(delta: number) {
     lastCheckTime = 0;
 
     const playerPos = useEngineStore.getState().player.position;
-    const damagePlayer = useEngineStore.getState().damagePlayer;
+    const takeDamage = useRPGStore.getState().takeDamage;
 
     // Check collisions with predator NPCs for damage
     for (const entity of world.with('isNPC', 'transform', 'species')) {
@@ -66,7 +66,7 @@ export function CollisionSystem(delta: number) {
                     baseDamage * difficultyMultiplier * bloodMoonMultiplier - shieldLevel
                 );
 
-                damagePlayer(finalDamage);
+                takeDamage(finalDamage);
 
                 // Apply special effects on hit
                 if (entity.enemyEffect?.type === 'curse') {

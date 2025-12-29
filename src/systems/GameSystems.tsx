@@ -20,15 +20,17 @@ import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
 
 export function GameSystems() {
-    const playerPos = useEngineStore((s) => s.player.position);
     const qualityManager = useRef(getAdaptiveQualityManager());
     const memoryMonitor = useRef(getMemoryMonitor());
     const lastQualityCheck = useRef(0);
     const lastMemoryCheck = useRef(0);
 
     useFrame((_, delta) => {
+        const state = useEngineStore.getState();
+        const playerPos = state.player.position;
+        
         // Sync difficulty from Zustand to ECS
-        const currentDifficulty = useEngineStore.getState().difficulty;
+        const currentDifficulty = state.difficulty;
         const worldEntity = world.with('difficulty').entities[0];
         if (worldEntity && worldEntity.difficulty.level !== currentDifficulty) {
             worldEntity.difficulty.level = currentDifficulty;
@@ -73,18 +75,27 @@ export function GameSystems() {
             lastMemoryCheck.current = 0;
         }
 
-        // Run ECS systems in order
-        CombatSystem();
-        PlayerSyncSystem();
+        // Run ECS systems in optimized order
+        // 1. Environmental Systems
         TimeSystem(delta);
         WeatherSystem(delta);
         WorldEventSystem();
+
+        // 2. State & Entity Management
+        PlayerSyncSystem();
         BiomeSystem(playerPos.x, playerPos.z);
-        EnemyEffectsSystem(delta);
         SpawnSystem(playerPos);
+
+        // 3. AI & Combat
         AISystem(delta);
+        CombatSystem(); // Only initializes once
+
+        // 4. Interaction & Physics Logic
         CollisionSystem(delta);
         ResourceSystem(playerPos, delta);
+
+        // 5. Status Effects & Logic Resolution
+        EnemyEffectsSystem(delta);
         AchievementSystem();
         BossBattleSystem();
     });

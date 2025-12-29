@@ -46,7 +46,7 @@ export function Player() {
     const playerStats = useRPGStore((s) => s.player.stats);
     const dashAction = useControlsStore((state) => state.actions.dash);
     const updatePlayer = useEngineStore((s) => s.updatePlayer);
-    const damagePlayer = useEngineStore.getState().damagePlayer;
+    const takeDamage = useRPGStore((s) => s.takeDamage);
 
     // Create Strata character
     useEffect(() => {
@@ -201,7 +201,7 @@ export function Player() {
         if (isGrounded && velocity.y < -15) {
             const damage = Math.floor(Math.abs(velocity.y + 15) * 2);
             if (damage > 0) {
-                damagePlayer(damage);
+                takeDamage(damage);
             }
         }
 

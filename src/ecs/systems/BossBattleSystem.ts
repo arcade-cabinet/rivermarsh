@@ -15,8 +15,8 @@ const SPELL_DAMAGE_MAX = 6;
 const SPECIAL_ABILITY_COOLDOWN = 3;
 
 export function BossBattleSystem() {
-    const { mode, activeBossId, damagePlayer, addExperience, addGold, setMode, setActiveBossId } = useEngineStore.getState();
-    const { setGameMode } = useRPGStore.getState();
+    const { mode, activeBossId, setMode, setActiveBossId } = useEngineStore.getState();
+    const { takeDamage, addExperience, addGold } = useRPGStore.getState();
 
     if (mode !== ('boss_battle' as any) || activeBossId === null) return;
 
@@ -24,7 +24,6 @@ export function BossBattleSystem() {
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) {
         // If boss is gone or invalid, return to exploration
         setMode('exploration');
-        setGameMode('exploration');
         setActiveBossId(null);
         return;
     }
@@ -66,7 +65,7 @@ export function BossBattleSystem() {
             }
 
             console.log(`${bossData.name} uses ${actionName} for ${damage} damage!`);
-            damagePlayer(damage);
+            takeDamage(damage);
             combat.lastAction = `${bossData.name} used ${actionName}`;
             combat.turn = 'player';
             boss.isProcessingTurn = false;
@@ -87,14 +86,15 @@ export function BossBattleSystem() {
         
         // Back to exploration
         setMode('exploration');
-        setGameMode('exploration');
         setActiveBossId(null);
     }
 }
 
 // Function to handle player actions (called from UI)
 export function handlePlayerAction(action: 'attack' | 'spell') {
-    const { activeBossId, player, useMana } = useEngineStore.getState() as any;
+    const { activeBossId } = useEngineStore.getState();
+    const { useMana, player } = useRPGStore.getState();
+    const playerStats = player.stats;
     if (activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
@@ -108,13 +108,13 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
 
     if (action === 'attack') {
         // Attack: Random base damage + level
-        damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + player.level;
+        damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + playerStats.level;
         success = true;
         combat.lastAction = `Player attacked for ${damage} damage`;
     } else if (action === 'spell') {
         // Spell: Fireball damage, costs mana
         if (useMana(SPELL_MANA_COST)) {
-            damage = (Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) + SPELL_DAMAGE_MIN) + Math.floor(player.level / 2);
+            damage = (Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) + SPELL_DAMAGE_MIN) + Math.floor(playerStats.level / 2);
             success = true;
             combat.lastAction = `Player cast Fireball for ${damage} damage`;
         } else {

@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { subscribeWithSelector, persist } from "zustand/middleware";
+import { PLAYER, LEVELING } from '../constants/game';
+import { getAudioManager } from '../utils/audioManager';
 
 export type OtterFaction = "river_clan" | "marsh_raiders" | "lone_wanderers" | "elder_council" | "neutral";
 export type QuestStatus = "available" | "active" | "completed" | "failed";
@@ -18,14 +20,20 @@ export interface PlayerStats {
   maxHealth: number;
   stamina: number;
   maxStamina: number;
+  mana: number;
+  maxMana: number;
   gold: number;
   otterAffinity: number;
   level: number;
   experience: number;
+  expToNext: number;
+  damage: number;
   skills: Record<SkillType, OtterSkill>;
   swordLevel: number;
   shieldLevel: number;
   bootsLevel: number;
+  invulnerable: boolean;
+  invulnerableUntil: number;
 }
 
 export type EquipmentSlot = "weapon" | "shell_armor" | "diving_gear" | "fishing_rod" | "accessory";
@@ -74,11 +82,7 @@ export interface OtterNPC {
   maxHealth?: number;
 }
 
-export type GameMode = 'exploration' | 'racing' | 'boss_battle' | 'examples';
-
 export interface GameState {
-  gameMode: GameMode;
-  setGameMode: (mode: GameMode) => void;
   player: {
     position: [number, number, number];
     rotation: [number, number];
@@ -131,6 +135,8 @@ export interface GameState {
   useStamina: (amount: number) => void;
   restoreStamina: (amount: number) => void;
   addExperience: (amount: number) => void;
+  useMana: (amount: number) => boolean;
+  restoreMana: (amount: number) => void;
   improveSkill: (skillType: SkillType, experienceAmount: number) => void;
   updateFactionReputation: (faction: OtterFaction, amount: number) => void;
   spawnNPC: (npc: OtterNPC) => void;
@@ -138,25 +144,28 @@ export interface GameState {
   damageNPC: (npcId: string, amount: number) => void;
   addGold: (amount: number) => void;
   spendGold: (amount: number) => boolean;
+  respawn: () => void;
 }
 
 export const useRPGStore = create<GameState>()(
   persist(
     subscribeWithSelector((set, get) => ({
-    gameMode: 'exploration',
-    setGameMode: (mode) => set({ gameMode: mode }),
     player: {
       position: [0, 1, 0],
       rotation: [0, 0],
       stats: {
-        health: 100,
-        maxHealth: 100,
-        stamina: 100,
-        maxStamina: 100,
-        gold: 100,
+        health: PLAYER.INITIAL_HEALTH,
+        maxHealth: PLAYER.INITIAL_HEALTH,
+        stamina: PLAYER.INITIAL_STAMINA,
+        maxStamina: PLAYER.INITIAL_STAMINA,
+        mana: 20,
+        maxMana: 20,
+        gold: 0,
         otterAffinity: 50,
         level: 1,
         experience: 0,
+        expToNext: LEVELING.BASE_XP_REQUIRED,
+        damage: PLAYER.BASE_DAMAGE,
         skills: {
           swimming: { name: "Swimming", level: 1, experience: 0, experienceToNext: 100 },
           diving: { name: "Diving", level: 1, experience: 0, experienceToNext: 100 },
@@ -170,6 +179,8 @@ export const useRPGStore = create<GameState>()(
         swordLevel: 0,
         shieldLevel: 0,
         bootsLevel: 0,
+        invulnerable: false,
+        invulnerableUntil: 0,
       },
       inventory: [
         {
@@ -431,11 +442,24 @@ export const useRPGStore = create<GameState>()(
 
     takeDamage: (amount) =>
       set((state) => {
+        if (state.player.stats.invulnerable || Date.now() < state.player.stats.invulnerableUntil) {
+            return state;
+        }
         const newHealth = Math.max(0, state.player.stats.health - amount);
+        
+        const audioManager = getAudioManager();
+        if (audioManager) {
+            audioManager.playSound('damage' as any, 0.5);
+        }
+
         return {
           player: {
             ...state.player,
-            stats: { ...state.player.stats, health: newHealth },
+            stats: { 
+                ...state.player.stats, 
+                health: newHealth,
+                invulnerableUntil: Date.now() + 1000,
+            },
           },
         };
       }),
@@ -479,35 +503,85 @@ export const useRPGStore = create<GameState>()(
         },
       })),
 
+    useMana: (amount) => {
+        let success = false;
+        set((state) => {
+            if (state.player.stats.mana >= amount) {
+                success = true;
+                return {
+                    player: {
+                        ...state.player,
+                        stats: {
+                            ...state.player.stats,
+                            mana: state.player.stats.mana - amount,
+                        },
+                    },
+                };
+            }
+            return state;
+        });
+        return success;
+    },
+
+    restoreMana: (amount) => set((state) => ({
+        player: {
+            ...state.player,
+            stats: {
+                ...state.player.stats,
+                mana: Math.min(state.player.stats.maxMana, state.player.stats.mana + amount),
+            },
+        },
+    })),
+
     addExperience: (amount) =>
       set((state) => {
-        const newExp = state.player.stats.experience + amount;
-        const expForNextLevel = state.player.stats.level * 100;
-        
-        if (newExp >= expForNextLevel) {
-          const newLevel = state.player.stats.level + 1;
-          const newMaxHealth = state.player.stats.maxHealth + 10;
-          const newMaxStamina = state.player.stats.maxStamina + 5;
-          return {
-            player: {
-              ...state.player,
-              stats: {
-                ...state.player.stats,
-                experience: newExp - expForNextLevel,
-                level: newLevel,
-                maxHealth: newMaxHealth,
-                health: newMaxHealth,
-                maxStamina: newMaxStamina,
-                stamina: newMaxStamina,
-              },
-            },
-          };
+        let exp = state.player.stats.experience + amount;
+        let level = state.player.stats.level;
+        let expToNext = state.player.stats.expToNext;
+        let maxHealth = state.player.stats.maxHealth;
+        let damage = state.player.stats.damage;
+        let maxMana = state.player.stats.maxMana;
+        let health = state.player.stats.health;
+        let mana = state.player.stats.mana;
+        let leveledUp = false;
+
+        while (exp >= expToNext && level < LEVELING.MAX_LEVEL) {
+            exp -= expToNext;
+            level += 1;
+            expToNext = Math.floor(expToNext * LEVELING.XP_MULTIPLIER);
+            maxHealth = PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL;
+            damage = PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL;
+            maxMana += 10;
+            leveledUp = true;
+        }
+
+        if (level >= LEVELING.MAX_LEVEL && exp >= expToNext) {
+            exp = expToNext - 1;
+        }
+
+        if (leveledUp) {
+            health = maxHealth;
+            mana = maxMana;
+            const audioManager = getAudioManager();
+            if (audioManager) {
+                audioManager.playSound('level-up' as any, 0.7);
+            }
         }
 
         return {
           player: {
             ...state.player,
-            stats: { ...state.player.stats, experience: newExp },
+            stats: {
+              ...state.player.stats,
+              experience: exp,
+              level,
+              expToNext,
+              maxHealth,
+              health,
+              damage,
+              maxMana,
+              mana,
+            },
           },
         };
       }),
@@ -615,6 +689,18 @@ export const useRPGStore = create<GameState>()(
       }
       return false;
     },
+    respawn: () => set((state) => ({
+      player: {
+        ...state.player,
+        stats: {
+          ...state.player.stats,
+          health: state.player.stats.maxHealth,
+          stamina: state.player.stats.maxStamina,
+          mana: state.player.stats.maxMana,
+          invulnerableUntil: 0,
+        },
+      },
+    })),
     })),
     {
       name: 'rivermarsh-game-state',

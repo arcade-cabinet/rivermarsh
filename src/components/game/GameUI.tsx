@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useRPGStore } from '@/stores/rpgStore';
+import { useEngineStore } from '@/stores/engineStore';
 import { ShopPanel } from './ShopPanel';
 
 export function GameUI() {
@@ -27,7 +28,7 @@ export function GameUI() {
                 toggleShop();
             }
             if (e.key === 'r' || e.key === 'R') {
-                useRPGStore.getState().setGameMode('racing');
+                useEngineStore.getState().setMode('racing');
             }
             if (e.key === 'Enter' || e.key === ' ') {
                 if (activeDialogue) {

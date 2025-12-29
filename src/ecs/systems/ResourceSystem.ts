@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { useEngineStore } from '@/stores/engineStore';
+import { useRPGStore } from '@/stores/rpgStore';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
@@ -89,8 +90,8 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
         initializeResources(playerPos);
     }
 
-    const healPlayer = useEngineStore.getState().healPlayer;
-    const restoreStamina = useEngineStore.getState().restoreStamina;
+    const heal = useRPGStore.getState().heal;
+    const restoreStamina = useRPGStore.getState().restoreStamina;
     const setNearbyResource = useEngineStore.getState().setNearbyResource;
 
     let closestResource: { type: ResourceType; distance: number } | null = null;
@@ -128,7 +129,7 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
 
             // Apply effects
             if (entity.resource.healthRestore > 0) {
-                healPlayer(entity.resource.healthRestore);
+                heal(entity.resource.healthRestore);
             }
             if (entity.resource.staminaRestore > 0) {
                 restoreStamina(entity.resource.staminaRestore);
