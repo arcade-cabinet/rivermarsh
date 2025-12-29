@@ -218,6 +218,8 @@ describe('GameStore - Death and Respawn', () => {
                 experience: 0,
                 mana: 20,
                 gold: 0,
+                quests: expect.any(Object),
+                achievements: expect.any(Array),
             });
         });
 
@@ -244,6 +246,8 @@ describe('GameStore - Death and Respawn', () => {
                 experience: 0,
                 mana: 20,
                 gold: 0,
+                quests: expect.any(Object),
+                achievements: expect.any(Array),
             });
         });
     });

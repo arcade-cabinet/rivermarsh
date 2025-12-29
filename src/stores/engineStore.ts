@@ -3,6 +3,8 @@ import { create } from 'zustand';
 import { loadGame as loadGameUtil, saveGame as saveGameUtil } from '../utils/save';
 import { PLAYER, LEVELING } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
+import { useRPGStore } from './rpgStore';
+import { useAchievementStore } from './useAchievementStore';
 
 export type DifficultyLevel = 'easy' | 'normal' | 'hard' | 'legendary';
 
@@ -287,6 +289,9 @@ export const useEngineStore = create<GameState>((set, get) => ({
     })),
     saveGame: () => {
         const state = get();
+        const rpgState = useRPGStore.getState();
+        const achievementState = useAchievementStore.getState();
+
         saveGameUtil({
             position: state.player.position,
             health: state.player.health,
@@ -295,12 +300,20 @@ export const useEngineStore = create<GameState>((set, get) => ({
             experience: state.player.experience,
             mana: state.player.mana,
             gold: state.player.gold,
+            quests: {
+                active: rpgState.player.activeQuests,
+                completed: rpgState.player.completedQuests,
+            },
+            achievements: achievementState.achievements
+                .filter((a) => a.unlockedAt !== null)
+                .map((a) => ({ id: a.id, unlockedAt: a.unlockedAt! })),
         });
     },
     loadGame: () => {
         const saveData = loadGameUtil();
         if (!saveData) return;
 
+        // Update engine store
         set((state) => {
             const level = saveData.player.level || 1;
             return {
@@ -311,8 +324,8 @@ export const useEngineStore = create<GameState>((set, get) => ({
                     stamina: saveData.player.stamina,
                     level: level,
                     experience: saveData.player.experience || 0,
-                    mana: saveData.player.mana ?? 20,
-                    gold: saveData.player.gold ?? 0,
+                    mana: saveData.player.mana,
+                    gold: saveData.player.gold,
                     maxHealth: PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL,
                     damage: PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL,
                     expToNext: calculateExpToNext(level),
@@ -320,5 +333,31 @@ export const useEngineStore = create<GameState>((set, get) => ({
                 },
             };
         });
+
+        // Update RPG store
+        useRPGStore.setState((state) => ({
+            player: {
+                ...state.player,
+                activeQuests: saveData.player.quests?.active || [],
+                completedQuests: saveData.player.quests?.completed || [],
+                stats: {
+                    ...state.player.stats,
+                    gold: saveData.player.gold,
+                    level: saveData.player.level,
+                    experience: saveData.player.experience,
+                },
+            },
+        }));
+
+        // Update Achievement store
+        useAchievementStore.setState((state) => ({
+            achievements: state.achievements.map((a) => {
+                const savedAch = saveData.player.achievements?.find((sa) => sa.id === a.id);
+                return {
+                    ...a,
+                    unlockedAt: savedAch ? savedAch.unlockedAt : null,
+                };
+            }),
+        }));
     },
 }));
