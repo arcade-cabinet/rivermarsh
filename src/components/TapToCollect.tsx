@@ -66,7 +66,7 @@ export function TapToCollect() {
                         quantity: 1,
                         description: `A fresh ${entity.resource.type} collected from the wild.`
                     });
-                    useRPGStore.getState().incrementResourcesCollected(1);
+                    useGameStore.getState().incrementResourcesCollected(1);
 
                     // Play collection sound
                     const audioManager = getAudioManager();
