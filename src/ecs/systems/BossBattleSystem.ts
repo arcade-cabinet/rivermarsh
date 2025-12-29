@@ -15,11 +15,21 @@ const SPELL_DAMAGE_MAX = 6;
 const SPECIAL_ABILITY_COOLDOWN = 3;
 
 export function BossBattleSystem() {
-    const { gameMode, activeBossId, damagePlayer, addExperience, addGold, setGameMode, setActiveBossId } = useGameStore.getState();
+    const {
+        gameMode,
+        activeBossId,
+        damagePlayer,
+        addExperience,
+        addGold,
+        setGameMode,
+        setActiveBossId,
+    } = useGameStore.getState();
 
-    if (gameMode !== 'boss_battle' || activeBossId === null) return;
+    if (gameMode !== 'boss_battle' || activeBossId === null) {
+        return;
+    }
 
-    const bossEntity = world.entities.find(e => e.id === activeBossId);
+    const bossEntity = world.entities.find((e) => e.id === activeBossId);
     if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) {
         // If boss is gone or invalid, return to exploration
         setGameMode('exploration');
@@ -32,15 +42,22 @@ export function BossBattleSystem() {
     // Handle turns
     if (combat.turn === 'boss' && !boss.isProcessingTurn) {
         boss.isProcessingTurn = true;
-        
+
         setTimeout(() => {
             // Check if still in boss battle and boss still exists
-            const currentBoss = world.entities.find(e => e.id === activeBossId);
-            if (!currentBoss || !currentBoss.boss || !currentBoss.combat || useGameStore.getState().gameMode !== 'boss_battle') {
-                if (currentBoss?.boss) currentBoss.boss.isProcessingTurn = false;
+            const currentBoss = world.entities.find((e) => e.id === activeBossId);
+            if (
+                !currentBoss ||
+                !currentBoss.boss ||
+                !currentBoss.combat ||
+                useGameStore.getState().gameMode !== 'boss_battle'
+            ) {
+                if (currentBoss?.boss) {
+                    currentBoss.boss.isProcessingTurn = false;
+                }
                 return;
             }
-            
+
             // Additional check: ensure we're still processing the same turn
             if (currentBoss.combat.turn !== 'boss') {
                 currentBoss.boss.isProcessingTurn = false;
@@ -80,7 +97,7 @@ export function BossBattleSystem() {
             
             combat.turn = 'player';
             boss.isProcessingTurn = false;
-            
+
             // Explicitly notify world of update if there are any listeners
             world.update(bossEntity);
         }, BOSS_TURN_DELAY);
@@ -91,10 +108,10 @@ export function BossBattleSystem() {
         console.log('Boss Defeated!');
         addExperience(boss.rewards.experience);
         addGold(boss.rewards.gold);
-        
+
         // Remove boss entity
         world.remove(bossEntity);
-        
+
         // Back to exploration
         setGameMode('exploration');
         setActiveBossId(null);
@@ -104,13 +121,19 @@ export function BossBattleSystem() {
 // Function to handle player actions (called from UI)
 export function handlePlayerAction(action: 'attack' | 'spell') {
     const { activeBossId, player, useMana } = useGameStore.getState();
-    if (activeBossId === null) return;
+    if (activeBossId === null) {
+        return;
+    }
 
-    const bossEntity = world.entities.find(e => e.id === activeBossId);
-    if (!bossEntity || !bossEntity.species || !bossEntity.combat) return;
+    const bossEntity = world.entities.find((e) => e.id === activeBossId);
+    if (!bossEntity || !bossEntity.species || !bossEntity.combat) {
+        return;
+    }
 
     const { species, combat } = bossEntity;
-    if (combat.turn !== 'player') return;
+    if (combat.turn !== 'player') {
+        return;
+    }
 
     let damage = 0;
     let success = false;
@@ -124,7 +147,10 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
     } else if (action === 'spell') {
         // Spell: Fireball 3-6 damage, costs 3 mana (from Rivers of Reckoning specs)
         if (useMana(SPELL_MANA_COST)) {
-            damage = (Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) + SPELL_DAMAGE_MIN) + Math.floor(player.level / 2);
+            damage =
+                Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) +
+                SPELL_DAMAGE_MIN +
+                Math.floor(player.level / 2);
             success = true;
             combat.lastAction = `Player cast Fireball for ${damage} damage`;
         } else {
