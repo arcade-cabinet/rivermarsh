@@ -2,6 +2,7 @@ import { world } from '../world';
 import { useEngineStore } from '../../stores/engineStore';
 import { useRPGStore } from '../../stores/rpgStore';
 import { BOSSES } from '../data/bosses';
+import { combatEvents } from '../../events/combatEvents';
 
 // Constants for combat balancing
 const BOSS_TURN_DELAY = 1000;
@@ -54,19 +55,30 @@ export function BossBattleSystem() {
             let actionName = 'Attack';
 
             if (boss.specialAbilityCooldown === 0) {
-                // Use special ability
-                const ability = bossData.abilities[0];
+                // Use a special ability (pick one randomly if multiple exist)
+                const abilityIndex = Math.floor(Math.random() * bossData.abilities.length);
+                const ability = bossData.abilities[abilityIndex];
                 damage = ability.damage;
                 actionName = ability.name;
+                
+                // Special handling for certain abilities
+                if (actionName === 'Regrow') {
+                    const healAmount = Math.floor(bossData.health * 0.2); // Heal 20% of max health
+                    species.health = Math.min(species.maxHealth, species.health + healAmount);
+                    combat.lastAction = `${bossData.name} used ${actionName} and healed!`;
+                } else {
+                    damagePlayer(damage);
+                    combat.lastAction = `${bossData.name} used ${actionName} for ${damage} damage!`;
+                }
+                
                 boss.specialAbilityCooldown = SPECIAL_ABILITY_COOLDOWN;
             } else {
                 // Normal attack
                 damage = Math.floor(Math.random() * (MAX_BOSS_DAMAGE - MIN_BOSS_DAMAGE + 1)) + MIN_BOSS_DAMAGE;
+                console.log(`${bossData.name} attacks for ${damage} damage!`);
+                damagePlayer(damage);
                 boss.specialAbilityCooldown = Math.max(0, boss.specialAbilityCooldown - 1);
             }
-
-            console.log(`${bossData.name} uses ${actionName} for ${damage} damage!`);
-            damagePlayer(damage);
             combat.lastAction = `${bossData.name} used ${actionName}`;
             combat.turn = 'player';
             boss.isProcessingTurn = false;
@@ -94,7 +106,8 @@ export function BossBattleSystem() {
 
 // Function to handle player actions (called from UI)
 export function handlePlayerAction(action: 'attack' | 'spell') {
-    const { activeBossId, player, useMana } = useEngineStore.getState() as any;
+    const { activeBossId, player, useMana } = useEngineStore.getState();
+    const { player: rpgPlayer } = useRPGStore.getState();
     if (activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
@@ -107,12 +120,13 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
     let success = false;
 
     if (action === 'attack') {
-        // Attack: Random base damage + level
-        damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + player.level;
+        // Attack: Random 2-4 damage + sword level (from Rivers of Reckoning specs)
+        const swordLevel = rpgPlayer.stats.swordLevel || 0;
+        damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + swordLevel;
         success = true;
         combat.lastAction = `Player attacked for ${damage} damage`;
     } else if (action === 'spell') {
-        // Spell: Fireball damage, costs mana
+        // Spell: Fireball 3-6 damage, costs 3 mana (from Rivers of Reckoning specs)
         if (useMana(SPELL_MANA_COST)) {
             damage = (Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) + SPELL_DAMAGE_MIN) + Math.floor(player.level / 2);
             success = true;
@@ -125,6 +139,12 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
 
     if (success) {
         species.health = Math.max(0, species.health - damage);
+        
+        // Emit damage event for visual indicators (from Strata)
+        if (bossEntity.transform) {
+            combatEvents.emitDamageEnemy(activeBossId, damage, bossEntity.transform.position.clone());
+        }
+        
         combat.turn = 'boss';
         // In this version, the boss turn delay is handled by setTimeout in BossBattleSystem
     }
