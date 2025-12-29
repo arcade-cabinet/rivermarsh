@@ -81,8 +81,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
 
             <div style={sectionStyle}>
                 <div style={rowStyle}>
-                    <span style={{ color: '#fff', fontSize: '1.1em' }}>SOUND EFFECTS</span>
+                    <span id="sound-label" style={{ color: '#fff', fontSize: '1.1em' }}>
+                        SOUND EFFECTS
+                    </span>
                     <button
+                        role="switch"
+                        aria-checked={settings.soundEnabled}
+                        aria-label="Toggle Sound Effects"
+                        aria-labelledby="sound-label"
                         style={toggleButtonStyle(settings.soundEnabled)}
                         onClick={() => updateSettings({ soundEnabled: !settings.soundEnabled })}
                     >
@@ -91,8 +97,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 </div>
 
                 <div style={rowStyle}>
-                    <span style={{ color: '#fff', fontSize: '1.1em' }}>MUSIC</span>
+                    <span id="music-label" style={{ color: '#fff', fontSize: '1.1em' }}>
+                        MUSIC
+                    </span>
                     <button
+                        role="switch"
+                        aria-checked={settings.musicEnabled}
+                        aria-label="Toggle Music"
+                        aria-labelledby="music-label"
                         style={toggleButtonStyle(settings.musicEnabled)}
                         onClick={() => updateSettings({ musicEnabled: !settings.musicEnabled })}
                     >
@@ -108,10 +120,12 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                         gap: '10px',
                     }}
                 >
-                    <span style={{ color: '#fff', fontSize: '1.1em' }}>
+                    <label htmlFor="volume-slider" style={{ color: '#fff', fontSize: '1.1em' }}>
                         VOLUME: {Math.round(settings.volume * 100)}%
-                    </span>
+                    </label>
                     <input
+                        id="volume-slider"
+                        aria-label="Volume"
                         type="range"
                         min="0"
                         max="1"
@@ -123,8 +137,14 @@ export function SettingsPanel({ onClose }: SettingsPanelProps) {
                 </div>
 
                 <div style={rowStyle}>
-                    <span style={{ color: '#fff', fontSize: '1.1em' }}>SHOW HELP TEXT</span>
+                    <span id="help-label" style={{ color: '#fff', fontSize: '1.1em' }}>
+                        SHOW HELP TEXT
+                    </span>
                     <button
+                        role="switch"
+                        aria-checked={settings.showHelp}
+                        aria-label="Toggle Help Text"
+                        aria-labelledby="help-label"
                         style={toggleButtonStyle(settings.showHelp)}
                         onClick={() => updateSettings({ showHelp: !settings.showHelp })}
                     >

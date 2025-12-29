@@ -45,7 +45,7 @@ export function QuestSystem() {
                 }
 
                 console.log(`Quest completed: ${quest.title}`);
-                
+
                 // Show notification if we had a notification system
             }
         }
@@ -57,17 +57,17 @@ export function QuestSystem() {
  */
 export function updateQuestProgress(type: QuestObjectiveType, target: string, amount = 1) {
     const players = world.with('quests', 'isPlayer').entities;
-    
+
     for (const player of players) {
         if (!player.quests) continue;
-        
+
         let changed = false;
         for (const quest of player.quests) {
             if (quest.status !== 'active') continue;
 
             for (const obj of quest.objectives) {
                 if (obj.isCompleted) continue;
-                
+
                 // Match by type and target (or wildcard '*')
                 if (obj.type === type && (obj.target === target || obj.target === '*')) {
                     obj.currentAmount += amount;
@@ -76,11 +76,13 @@ export function updateQuestProgress(type: QuestObjectiveType, target: string, am
                         obj.isCompleted = true;
                     }
                     changed = true;
-                    console.log(`Quest progress: ${quest.title} - ${obj.description} (${obj.currentAmount}/${obj.requiredAmount})`);
+                    console.log(
+                        `Quest progress: ${quest.title} - ${obj.description} (${obj.currentAmount}/${obj.requiredAmount})`
+                    );
                 }
             }
         }
-        
+
         if (changed) {
             // In a real app, we might want to trigger a store update to refresh UI
             // Since QuestOverlay will probably read from ECS directly, it's fine.
@@ -97,12 +99,12 @@ export function addQuestToPlayer(quest: QuestComponent) {
         if (!player.quests) {
             player.quests = [];
         }
-        
+
         // Don't add if already exists
-        if (player.quests.find(q => q.id === quest.id)) {
+        if (player.quests.find((q) => q.id === quest.id)) {
             return;
         }
-        
+
         player.quests.push({ ...quest, status: 'active' });
         console.log(`New quest accepted: ${quest.title}`);
     }
@@ -111,7 +113,8 @@ export function addQuestToPlayer(quest: QuestComponent) {
 export const RECOVER_FISH_QUEST: QuestComponent = {
     id: 'recover_fish',
     title: 'Recover Stolen Fish',
-    description: 'The Marsh Raiders have been stealing fish. Recover some to help the Elder Council.',
+    description:
+        'The Marsh Raiders have been stealing fish. Recover some to help the Elder Council.',
     status: 'active',
     objectives: [
         {
@@ -172,11 +175,11 @@ export const STARTER_QUEST: QuestComponent = {
             currentAmount: 0,
             description: 'Talk to Elder Moss',
             isCompleted: false,
-        }
+        },
     ],
     rewards: {
         experience: 100,
         gold: 50,
-        items: [{ id: 'starter_fish', quantity: 2 }]
-    }
+        items: [{ id: 'starter_fish', quantity: 2 }],
+    },
 };

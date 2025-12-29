@@ -72,7 +72,7 @@ export function QuestOverlay() {
                         {quest.title}
                         <span style={{ fontSize: '10px', opacity: 0.6 }}>ACTIVE</span>
                     </h4>
-                    
+
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                         {quest.objectives.map((obj) => (
                             <div
@@ -87,23 +87,31 @@ export function QuestOverlay() {
                                     transition: 'all 0.3s ease',
                                 }}
                             >
-                                <span style={{ 
-                                    minWidth: '18px', 
-                                    textAlign: 'center',
-                                    color: obj.isCompleted ? '#4ade80' : '#4169E1' 
-                                }}>
+                                <span
+                                    style={{
+                                        minWidth: '18px',
+                                        textAlign: 'center',
+                                        color: obj.isCompleted ? '#4ade80' : '#4169E1',
+                                    }}
+                                >
                                     {obj.isCompleted ? '✓' : '•'}
                                 </span>
                                 <div style={{ flex: 1 }}>
-                                    <div style={{ 
-                                        display: 'flex', 
-                                        justifyContent: 'space-between',
-                                        marginBottom: '2px'
-                                    }}>
-                                        <span style={{ 
-                                            textDecoration: obj.isCompleted ? 'line-through' : 'none',
-                                            fontSize: '12px'
-                                        }}>
+                                    <div
+                                        style={{
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '2px',
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                textDecoration: obj.isCompleted
+                                                    ? 'line-through'
+                                                    : 'none',
+                                                fontSize: '12px',
+                                            }}
+                                        >
                                             {obj.description}
                                         </span>
                                         {!obj.isCompleted && (
@@ -113,19 +121,23 @@ export function QuestOverlay() {
                                         )}
                                     </div>
                                     {!obj.isCompleted && obj.requiredAmount > 1 && (
-                                        <div style={{ 
-                                            width: '100%', 
-                                            height: '3px', 
-                                            background: 'rgba(255,255,255,0.1)', 
-                                            borderRadius: '2px',
-                                            overflow: 'hidden'
-                                        }}>
-                                            <div style={{ 
-                                                width: `${(obj.currentAmount / obj.requiredAmount) * 100}%`,
-                                                height: '100%',
-                                                background: '#4169E1',
-                                                transition: 'width 0.3s ease-out'
-                                            }} />
+                                        <div
+                                            style={{
+                                                width: '100%',
+                                                height: '3px',
+                                                background: 'rgba(255,255,255,0.1)',
+                                                borderRadius: '2px',
+                                                overflow: 'hidden',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: `${(obj.currentAmount / obj.requiredAmount) * 100}%`,
+                                                    height: '100%',
+                                                    background: '#4169E1',
+                                                    transition: 'width 0.3s ease-out',
+                                                }}
+                                            />
                                         </div>
                                     )}
                                 </div>
@@ -134,7 +146,7 @@ export function QuestOverlay() {
                     </div>
                 </div>
             ))}
-            
+
             <style>{`
                 @keyframes fadeInSlide {
                     from { opacity: 0; transform: translateX(20px); }

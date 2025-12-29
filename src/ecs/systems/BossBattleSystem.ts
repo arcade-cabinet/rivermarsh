@@ -74,7 +74,7 @@ export function BossBattleSystem() {
                 const ability = bossData.abilities[abilityIndex];
                 damage = ability.damage;
                 actionName = ability.name;
-                
+
                 // Special handling for certain abilities
                 if (actionName === 'Regrow') {
                     const healAmount = Math.floor(bossData.health * 0.2); // Heal 20% of max health
@@ -84,17 +84,19 @@ export function BossBattleSystem() {
                     damagePlayer(damage);
                     combat.lastAction = `${bossData.name} used ${actionName} for ${damage} damage!`;
                 }
-                
+
                 boss.specialAbilityCooldown = SPECIAL_ABILITY_COOLDOWN;
             } else {
                 // Normal attack
-                damage = Math.floor(Math.random() * (MAX_BOSS_DAMAGE - MIN_BOSS_DAMAGE + 1)) + MIN_BOSS_DAMAGE;
+                damage =
+                    Math.floor(Math.random() * (MAX_BOSS_DAMAGE - MIN_BOSS_DAMAGE + 1)) +
+                    MIN_BOSS_DAMAGE;
                 console.log(`${bossData.name} attacks for ${damage} damage!`);
                 damagePlayer(damage);
                 boss.specialAbilityCooldown = Math.max(0, boss.specialAbilityCooldown - 1);
                 combat.lastAction = `${bossData.name} used ${actionName}`;
             }
-            
+
             combat.turn = 'player';
             boss.isProcessingTurn = false;
 
@@ -141,7 +143,10 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
     if (action === 'attack') {
         // Attack: Random 2-4 damage + sword level (from Rivers of Reckoning specs)
         const swordLevel = player.swordLevel || 0;
-        damage = (Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) + PLAYER_ATTACK_MIN) + swordLevel;
+        damage =
+            Math.floor(Math.random() * (PLAYER_ATTACK_MAX - PLAYER_ATTACK_MIN + 1)) +
+            PLAYER_ATTACK_MIN +
+            swordLevel;
         success = true;
         combat.lastAction = `Player attacked for ${damage} damage`;
     } else if (action === 'spell') {
@@ -161,12 +166,16 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
 
     if (success) {
         species.health = Math.max(0, species.health - damage);
-        
+
         // Emit damage event for visual indicators (from Strata)
         if (bossEntity.transform) {
-            combatEvents.emitDamageEnemy(activeBossId, damage, bossEntity.transform.position.clone());
+            combatEvents.emitDamageEnemy(
+                activeBossId,
+                damage,
+                bossEntity.transform.position.clone()
+            );
         }
-        
+
         combat.turn = 'boss';
         // In this version, the boss turn delay is handled by setTimeout in BossBattleSystem
     }
