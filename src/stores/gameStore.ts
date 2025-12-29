@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { subscribeWithSelector, persist } from 'zustand/middleware';
 import { PLAYER, LEVELING } from '../constants/game';
 import { getAudioManager } from '../utils/audioManager';
+import { hapticFeedback, HAPTIC_PATTERNS } from '../hooks/useMobileConstraints';
 
 // --- Types ---
 
@@ -328,7 +329,12 @@ export const useGameStore = create<GameState>()(
                 setDifficulty: (difficulty) => set({ difficulty }),
                 togglePause: () => set((state) => ({ isPaused: !state.isPaused })),
                 setPaused: (isPaused) => set({ isPaused }),
-                setGameOver: (gameOver) => set({ gameOver }),
+                setGameOver: (gameOver) => {
+                    set({ gameOver });
+                    if (gameOver) {
+                        hapticFeedback(HAPTIC_PATTERNS.gameOver);
+                    }
+                },
 
                 updatePlayer: (updates) => set((state) => ({
                     player: { ...state.player, ...updates }
@@ -350,6 +356,8 @@ export const useGameStore = create<GameState>()(
                         audioManager.playSound('damage', 0.5);
                     }
                     
+                    hapticFeedback(HAPTIC_PATTERNS.hit);
+
                     return {
                         player: {
                             ...state.player,
@@ -432,6 +440,7 @@ export const useGameStore = create<GameState>()(
                         if (audioManager) {
                             audioManager.playSound('level-up' as any, 0.7);
                         }
+                        hapticFeedback(HAPTIC_PATTERNS.levelUp);
                     }
 
                     return {
