@@ -26,6 +26,8 @@ export interface PlayerStats {
   swordLevel: number;
   shieldLevel: number;
   bootsLevel: number;
+  predatorsKilled: number;
+  totalResourcesCollected: number;
 }
 
 export type EquipmentSlot = "weapon" | "shell_armor" | "diving_gear" | "fishing_rod" | "accessory";
@@ -138,6 +140,8 @@ export interface GameState {
   damageNPC: (npcId: string, amount: number) => void;
   addGold: (amount: number) => void;
   spendGold: (amount: number) => boolean;
+  incrementResourcesCollected: (amount?: number) => void;
+  incrementPredatorsKilled: () => void;
 }
 
 export const useRPGStore = create<GameState>()(
@@ -170,6 +174,8 @@ export const useRPGStore = create<GameState>()(
         swordLevel: 0,
         shieldLevel: 0,
         bootsLevel: 0,
+        predatorsKilled: 0,
+        totalResourcesCollected: 0,
       },
       inventory: [
         {
@@ -585,6 +591,11 @@ export const useRPGStore = create<GameState>()(
         get().addGold(10);
         get().addExperience(20);
         get().removeNPC(npcId);
+
+        // Track predator kills for achievements
+        if (npc.type === 'hostile') {
+          get().incrementPredatorsKilled();
+        }
       }
     },
 
@@ -615,6 +626,26 @@ export const useRPGStore = create<GameState>()(
       }
       return false;
     },
+    incrementResourcesCollected: (amount = 1) =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            totalResourcesCollected: state.player.stats.totalResourcesCollected + amount,
+          },
+        },
+      })),
+    incrementPredatorsKilled: () =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            predatorsKilled: state.player.stats.predatorsKilled + 1,
+          },
+        },
+      })),
     })),
     {
       name: 'rivermarsh-game-state',
