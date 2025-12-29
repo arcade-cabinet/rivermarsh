@@ -1,3 +1,4 @@
+import { useRPGStore } from '@/stores/rpgStore';
 import * as THREE from 'three';
 import { useGameStore } from '@/stores/gameStore';
 import { RESOURCES, type ResourceType } from '../data/resources';
@@ -141,6 +142,9 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             if (audioManager) {
                 audioManager.playSound('collect', 0.6);
             }
+
+            // Track for achievements
+            useRPGStore.getState().incrementResourcesCollected(1);
 
             console.log(`Collected ${entity.resource.type}!`);
         }

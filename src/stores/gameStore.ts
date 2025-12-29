@@ -126,6 +126,8 @@ export interface GameState {
         shieldLevel: number;
         bootsLevel: number;
         skills: Record<SkillType, OtterSkill>;
+        predatorsKilled: number;
+        totalResourcesCollected: number;
         
         // RPG Collections
         inventory: InventoryItem[];
@@ -191,6 +193,8 @@ export interface GameState {
     completeQuest: (questId: string) => void;
     updateQuestObjective: (questId: string, objectiveIndex: number) => void;
     updateFactionReputation: (faction: OtterFaction, amount: number) => void;
+    incrementResourcesCollected: (amount?: number) => void;
+    incrementPredatorsKilled: () => void;
     
     // UI Actions
     showInventory: boolean;
@@ -270,6 +274,8 @@ export const useGameStore = create<GameState>()(
                         foraging: { name: "Foraging", level: 1, experience: 0, experienceToNext: 100 },
                         crafting: { name: "Crafting", level: 1, experience: 0, experienceToNext: 100 },
                     },
+                    predatorsKilled: 0,
+                    totalResourcesCollected: 0,
                     inventory: [
                         {
                             id: "starter_fish",
@@ -646,6 +652,18 @@ export const useGameStore = create<GameState>()(
                 addScore: (amount) => set((state) => ({ score: state.score + amount })),
                 setDistance: (distance) => set({ distance }),
                 setInput: (x, y, active, jump) => set({ input: { direction: { x, y }, active, jump } }),
+                incrementResourcesCollected: (amount = 1) => set((state) => ({
+                    player: {
+                        ...state.player,
+                        totalResourcesCollected: state.player.totalResourcesCollected + amount,
+                    },
+                })),
+                incrementPredatorsKilled: () => set((state) => ({
+                    player: {
+                        ...state.player,
+                        predatorsKilled: state.player.predatorsKilled + 1,
+                    },
+                })),
                 updateSettings: (settings) => set((state) => ({ settings: { ...state.settings, ...settings } })),
             }),
             {
@@ -674,6 +692,8 @@ export const useGameStore = create<GameState>()(
                         factionReputation: state.player.factionReputation,
                         otterAffinity: state.player.otterAffinity,
                         skills: state.player.skills,
+                        predatorsKilled: state.player.predatorsKilled,
+                        totalResourcesCollected: state.player.totalResourcesCollected,
                     },
                     settings: state.settings,
                 }),
