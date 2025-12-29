@@ -16,9 +16,9 @@ import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
 import { BossBattleSystem } from '../ecs/systems/BossBattleSystem';
-import { QuestSystem } from '../ecs/systems/QuestSystem';
 import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
+import { QuestSystem } from '../ecs/systems/QuestSystem';
 
 export function GameSystems() {
     const playerPos = useGameStore((s) => s.player.position);

@@ -27,12 +27,12 @@ export const PLAYER = {
 // =============================================================================
 
 export const LEVELING = {
-  BASE_XP_REQUIRED: 100,
-  XP_MULTIPLIER: 1.5, // Exponential growth
-  MAX_LEVEL: 50, // Soft cap to prevent extreme grind
-  PREY_XP: 20,
-  PREDATOR_XP: 50,
-  BOSS_XP: 500,
+    BASE_XP_REQUIRED: 100,
+    XP_MULTIPLIER: 1.5, // Exponential growth
+    MAX_LEVEL: 50, // Soft cap to prevent extreme grind
+    PREY_XP: 20,
+    PREDATOR_XP: 50,
+    BOSS_XP: 500,
 } as const;
 
 // =============================================================================

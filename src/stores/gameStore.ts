@@ -716,6 +716,11 @@ export const useGameStore = create<GameState>()(
                         experience: state.player.experience,
                         mana: state.player.mana,
                         gold: state.player.gold,
+                        quests: {
+                            active: state.player.activeQuests,
+                            completed: state.player.completedQuests,
+                        },
+                        achievements: [], // Would need to sync from achievementStore if needed
                     });
                 },
                 
@@ -738,6 +743,8 @@ export const useGameStore = create<GameState>()(
                                 damage: PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL,
                                 expToNext: calculateExpToNext(level),
                                 maxMana: 20 + (level - 1) * 10,
+                                activeQuests: saveData.player.quests?.active || [],
+                                completedQuests: saveData.player.quests?.completed || [],
                             }
                         };
                     });
