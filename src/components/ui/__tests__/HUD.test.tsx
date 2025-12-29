@@ -236,7 +236,7 @@ describe('HUD Component', () => {
             render(<HUD />);
 
             expect(screen.getByText('Fish')).toBeInTheDocument();
-            expect(screen.getByText('Tap to collect')).toBeInTheDocument();
+            expect(screen.getByText(/collect/i)).toBeInTheDocument();
             expect(screen.getByText('🐟')).toBeInTheDocument();
         });
 

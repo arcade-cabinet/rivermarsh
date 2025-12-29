@@ -18,6 +18,7 @@ import { WeatherSystem } from '../ecs/systems/WeatherSystem';
 import { WorldEventSystem } from '../ecs/systems/WorldEventSystem';
 import { world } from '../ecs/world';
 import { AudioSystem } from './AudioSystem';
+import { QuestSystem } from '../ecs/systems/QuestSystem';
 
 export function GameSystems() {
     const playerPos = useGameStore((s) => s.player.position);
@@ -92,6 +93,7 @@ export function GameSystems() {
         ResourceSystem(playerPos, delta);
         AchievementSystem();
         BossBattleSystem();
+        QuestSystem();
     });
 
     return <AudioSystem />;
