@@ -60,6 +60,8 @@ describe('HUD Component', () => {
                 maxHealth: 100,
                 stamina: 100,
                 maxStamina: 100,
+                mana: 100,
+                maxMana: 100,
                 position: new THREE.Vector3(0, 0, 0),
                 rotation: 0,
                 speed: 0,

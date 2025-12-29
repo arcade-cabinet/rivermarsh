@@ -14,10 +14,11 @@ interface SimpleBarProps {
     fillColor?: string;
     backgroundColor?: string;
     style?: React.CSSProperties;
+    testId?: string;
 }
 
-function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style }: SimpleBarProps) {
-    const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100));
+function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c55e', backgroundColor = 'rgba(0,0,0,0.4)', style, testId }: SimpleBarProps) {
+    const percentage = Math.min(100, Math.max(0, (value / maxValue) * 100)) || 0;
     return (
         <div style={{ 
             width, 
@@ -27,13 +28,16 @@ function SimpleBar({ value, maxValue, width = 100, height = 8, fillColor = '#22c
             overflow: 'hidden',
             ...style 
         }}>
-            <div style={{
-                width: `${percentage}%`,
-                height: '100%',
-                backgroundColor: fillColor,
-                borderRadius: height / 2,
-                transition: 'width 0.2s ease-out',
-            }} />
+            <div 
+                data-testid={testId}
+                style={{
+                    width: `${percentage}%`,
+                    height: '100%',
+                    backgroundColor: fillColor,
+                    borderRadius: height / 2,
+                    transition: 'width 0.2s ease-out',
+                }} 
+            />
         </div>
     );
 }
@@ -84,6 +88,8 @@ export function HUD() {
     const maxHealth = useEngineStore((s) => s.player.maxHealth);
     const stamina = useEngineStore((s) => s.player.stamina);
     const maxStamina = useEngineStore((s) => s.player.maxStamina);
+    const mana = useEngineStore((s) => s.player.mana);
+    const maxMana = useEngineStore((s) => s.player.maxMana);
     const level = useEngineStore((s) => s.player.level);
     const experience = useEngineStore((s) => s.player.experience);
     const expToNext = useEngineStore((s) => s.player.expToNext);
@@ -283,6 +289,7 @@ export function HUD() {
                         width={250} 
                         height={12} 
                         fillColor={health / maxHealth > 0.5 ? '#4ade80' : health / maxHealth > 0.25 ? '#fbbf24' : '#ef4444'}
+                        testId="health-bar-fill"
                     />
                 </div>
                 {/* Stamina */}
@@ -297,6 +304,22 @@ export function HUD() {
                         width={250} 
                         height={8} 
                         fillColor="#60a5fa"
+                        testId="stamina-bar-fill"
+                    />
+                </div>
+                {/* Mana */}
+                <div>
+                    <div style={{ color: '#fff', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '4px', display: 'flex', justifyContent: 'space-between' }}>
+                        <span>Mana</span>
+                        <span>{Math.round(mana)} / {maxMana}</span>
+                    </div>
+                    <HealthBar 
+                        value={mana} 
+                        maxValue={maxMana} 
+                        width={250} 
+                        height={8} 
+                        fillColor="#a855f7"
+                        testId="mana-bar-fill"
                     />
                 </div>
 
@@ -372,7 +395,7 @@ export function HUD() {
                 ) : (
                     showHelpSetting && (
                         <div style={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', textTransform: 'uppercase', letterSpacing: '1px' }}>
-                            WASD: Move • Space: Jump • ESC: Pause
+                            WASD: Move • Space: Jump • Q: Spell • ESC: Pause
                         </div>
                     )
                 )}

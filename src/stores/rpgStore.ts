@@ -18,6 +18,8 @@ export interface PlayerStats {
   maxHealth: number;
   stamina: number;
   maxStamina: number;
+  mana: number;
+  maxMana: number;
   gold: number;
   otterAffinity: number;
   level: number;
@@ -130,6 +132,8 @@ export interface GameState {
   heal: (amount: number) => void;
   useStamina: (amount: number) => void;
   restoreStamina: (amount: number) => void;
+  useMana: (amount: number) => boolean;
+  restoreMana: (amount: number) => void;
   addExperience: (amount: number) => void;
   improveSkill: (skillType: SkillType, experienceAmount: number) => void;
   updateFactionReputation: (faction: OtterFaction, amount: number) => void;
@@ -153,6 +157,8 @@ export const useRPGStore = create<GameState>()(
         maxHealth: 100,
         stamina: 100,
         maxStamina: 100,
+        mana: 100,
+        maxMana: 100,
         gold: 100,
         otterAffinity: 50,
         level: 1,
@@ -479,6 +485,40 @@ export const useRPGStore = create<GameState>()(
         },
       })),
 
+    useMana: (amount) => {
+      let success = false;
+      set((state) => {
+        if (state.player.stats.mana >= amount) {
+          success = true;
+          return {
+            player: {
+              ...state.player,
+              stats: {
+                ...state.player.stats,
+                mana: state.player.stats.mana - amount,
+              },
+            },
+          };
+        }
+        return state;
+      });
+      return success;
+    },
+
+    restoreMana: (amount) =>
+      set((state) => ({
+        player: {
+          ...state.player,
+          stats: {
+            ...state.player.stats,
+            mana: Math.min(
+              state.player.stats.maxMana,
+              state.player.stats.mana + amount
+            ),
+          },
+        },
+      })),
+
     addExperience: (amount) =>
       set((state) => {
         const newExp = state.player.stats.experience + amount;
@@ -488,6 +528,7 @@ export const useRPGStore = create<GameState>()(
           const newLevel = state.player.stats.level + 1;
           const newMaxHealth = state.player.stats.maxHealth + 10;
           const newMaxStamina = state.player.stats.maxStamina + 5;
+          const newMaxMana = state.player.stats.maxMana + 10;
           return {
             player: {
               ...state.player,
@@ -499,6 +540,8 @@ export const useRPGStore = create<GameState>()(
                 health: newMaxHealth,
                 maxStamina: newMaxStamina,
                 stamina: newMaxStamina,
+                maxMana: newMaxMana,
+                mana: newMaxMana,
               },
             },
           };

@@ -127,8 +127,8 @@ export const useEngineStore = create<GameState>((set, get) => ({
         expToNext: LEVELING.BASE_XP_REQUIRED,
         damage: PLAYER.BASE_DAMAGE,
         speedMultiplier: 1.0,
-        mana: 20,
-        maxMana: 20,
+        mana: PLAYER.INITIAL_MANA,
+        maxMana: PLAYER.INITIAL_MANA,
         gold: 0,
         invulnerable: false,
         invulnerableUntil: 0,
@@ -141,7 +141,17 @@ export const useEngineStore = create<GameState>((set, get) => ({
     distance: 0,
 
     setLoaded: (loaded) => set({ loaded }),
-    updateTime: (delta) => set((state) => ({ time: state.time + delta })),
+    updateTime: (delta) => set((state) => {
+        const manaRegen = PLAYER.MANA_REGEN_RATE * delta;
+        const newMana = Math.min(state.player.maxMana, state.player.mana + manaRegen);
+        return { 
+            time: state.time + delta,
+            player: {
+                ...state.player,
+                mana: newMana
+            }
+        };
+    }),
     setDifficulty: (difficulty) => set({ difficulty }),
     setMode: (mode) => set({ mode }),
     setInput: (x, y, active, jump) => set({ input: { direction: { x, y }, active, jump } }),
@@ -228,7 +238,7 @@ export const useEngineStore = create<GameState>((set, get) => ({
             expToNext = Math.floor(expToNext * LEVELING.XP_MULTIPLIER);
             maxHealth = PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL;
             damage = PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL;
-            maxMana += 10;
+            maxMana = PLAYER.INITIAL_MANA + (level - 1) * PLAYER.MANA_PER_LEVEL;
             leveledUp = true;
         }
 
@@ -316,7 +326,7 @@ export const useEngineStore = create<GameState>((set, get) => ({
                     maxHealth: PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL,
                     damage: PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL,
                     expToNext: calculateExpToNext(level),
-                    maxMana: 20 + (level - 1) * 10,
+                    maxMana: PLAYER.INITIAL_MANA + (level - 1) * PLAYER.MANA_PER_LEVEL,
                 },
             };
         });
