@@ -11,3 +11,4 @@ export * from './SpawnSystem';
 export * from './TimeSystem';
 export * from './WeatherSystem';
 export * from './WorldEventSystem';
+export * from './QuestSystem';

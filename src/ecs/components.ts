@@ -124,6 +124,29 @@ export interface WorldEventComponent {
     lastEventTime: number;
 }
 
+export type QuestObjectiveType = 'collect' | 'kill' | 'explore' | 'talk';
+
+export interface QuestComponent {
+    id: string;
+    title: string;
+    description: string;
+    status: 'available' | 'active' | 'completed' | 'failed';
+    objectives: {
+        id: string;
+        type: QuestObjectiveType;
+        target: string;
+        requiredAmount: number;
+        currentAmount: number;
+        description: string;
+        isCompleted: boolean;
+    }[];
+    rewards: {
+        gold: number;
+        experience: number;
+        items?: { id: string; quantity: number }[];
+    };
+}
+
 export interface BossComponent {
     type: 'dread_hydra' | 'shadow_golem' | 'chaos_drake';
     heads?: number; // for hydra
@@ -159,6 +182,7 @@ export type Entity = {
     resource?: ResourceComponent;
     audioListener?: boolean;
     boss?: BossComponent;
+    quests?: QuestComponent[];
 
     // Global Singletons (usually on isWorld entity)
     time?: TimeOfDayComponent;
