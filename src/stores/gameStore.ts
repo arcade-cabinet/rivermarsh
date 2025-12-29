@@ -132,6 +132,7 @@ export interface GameState {
         level: number;
         experience: number;
         expToNext: number;
+        damage: number;
         otterAffinity: number;
 
         // Equipment & Skills
@@ -269,6 +270,7 @@ export const useGameStore = create<GameState>()(
                     level: 1,
                     experience: 0,
                     expToNext: LEVELING.BASE_XP_REQUIRED,
+                    damage: PLAYER.BASE_DAMAGE,
                     otterAffinity: 50,
                     swordLevel: 0,
                     shieldLevel: 0,
@@ -457,6 +459,7 @@ export const useGameStore = create<GameState>()(
                         let expToNext = state.player.expToNext;
                         let maxHealth = state.player.maxHealth;
                         let maxMana = state.player.maxMana;
+                        let damage = state.player.damage;
                         let health = state.player.health;
                         let mana = state.player.mana;
                         let leveledUp = false;
@@ -468,6 +471,8 @@ export const useGameStore = create<GameState>()(
                             maxHealth =
                                 PLAYER.INITIAL_HEALTH + (level - 1) * PLAYER.HEALTH_PER_LEVEL;
                             maxMana += 10;
+                            damage = PLAYER.BASE_DAMAGE + (level - 1) * PLAYER.DAMAGE_PER_LEVEL;
+                            state.player.maxStamina += 5;
                             leveledUp = true;
                         }
 
@@ -494,6 +499,7 @@ export const useGameStore = create<GameState>()(
                                 health,
                                 maxMana,
                                 mana,
+                                damage,
                             },
                         };
                     }),
@@ -815,6 +821,7 @@ export const useGameStore = create<GameState>()(
                         level: state.player.level,
                         experience: state.player.experience,
                         expToNext: state.player.expToNext,
+                        damage: state.player.damage,
                         swordLevel: state.player.swordLevel,
                         shieldLevel: state.player.shieldLevel,
                         bootsLevel: state.player.bootsLevel,

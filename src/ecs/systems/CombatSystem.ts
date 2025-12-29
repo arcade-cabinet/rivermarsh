@@ -1,5 +1,6 @@
 import { combatEvents } from '../../events/combatEvents';
 import { useGameStore } from '../../stores/gameStore';
+import { LEVELING } from '../../constants/game';
 import { world } from '../world';
 
 /**
@@ -39,8 +40,9 @@ export function CombatSystem() {
                     if (updatedNPC && (updatedNPC.health ?? 0) <= 0) {
                         // Dead!
                         entity.species!.state = 'dead';
-                        // Add experience - scaled by NPC difficulty/type in future
-                        useGameStore.getState().addExperience(25);
+                        // Add experience based on NPC type
+                        const xpGain = entity.species!.type === 'predator' ? LEVELING.PREDATOR_XP : LEVELING.PREY_XP;
+                        useGameStore.getState().addExperience(xpGain);
                         useGameStore.getState().addGold(10);
                     }
                 }
