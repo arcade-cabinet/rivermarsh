@@ -17,21 +17,31 @@ export function ObjectiveMarker({
     visible,
     label = 'Collect Resource',
 }: ObjectiveMarkerProps) {
-    const [show, setShow] = useState(false);
+    const [show, setShow] = useState(() => {
+        try {
+            const collected = localStorage.getItem(OBJECTIVE_STORAGE_KEY);
+            return !collected && visible;
+        } catch (e) {
+            console.error('Failed to check objective status:', e);
+            return false;
+        }
+    });
     const [screenPosition, setScreenPosition] = useState({ x: 0, y: 0 });
     const [distance, setDistance] = useState(0);
 
-    // Check if first resource has been collected
+    // Sync show with visible prop if not already collected
     useEffect(() => {
-        try {
-            const collected = localStorage.getItem(OBJECTIVE_STORAGE_KEY);
-            if (!collected && visible) {
-                setShow(true);
+        if (visible && !show) {
+            try {
+                const collected = localStorage.getItem(OBJECTIVE_STORAGE_KEY);
+                if (!collected) {
+                    setShow(true);
+                }
+            } catch (e) {
+                console.error('Failed to check objective status:', e);
             }
-        } catch (e) {
-            console.error('Failed to check objective status:', e);
         }
-    }, [visible]);
+    }, [visible, show]);
 
     // Update screen position based on target and camera
     useEffect(() => {

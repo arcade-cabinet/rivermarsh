@@ -174,7 +174,7 @@ export interface GameState {
     healPlayer: (amount: number) => void;
     consumeStamina: (amount: number) => void;
     restoreStamina: (amount: number) => void;
-    useMana: (amount: number) => boolean;
+    spendMana: (amount: number) => boolean;
     restoreMana: (amount: number) => void;
     addExperience: (amount: number) => void;
     addGold: (amount: number) => void;
@@ -373,7 +373,7 @@ export const useGameStore = create<GameState>()(
                     },
                 })),
 
-                useMana: (amount) => {
+                spendMana: (amount) => {
                     let success = false;
                     set((state) => {
                         if (state.player.mana >= amount) {

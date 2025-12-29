@@ -90,7 +90,7 @@ export function BossBattleSystem() {
 
 // Function to handle player actions (called from UI)
 export function handlePlayerAction(action: 'attack' | 'spell') {
-    const { activeBossId, player, useMana } = useGameStore.getState();
+    const { activeBossId, player, spendMana } = useGameStore.getState();
     if (activeBossId === null) return;
 
     const bossEntity = world.entities.find(e => e.id === activeBossId);
@@ -109,7 +109,7 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
         combat.lastAction = `Player attacked for ${damage} damage`;
     } else if (action === 'spell') {
         // Spell: Fireball damage, costs mana
-        if (useMana(SPELL_MANA_COST)) {
+        if (spendMana(SPELL_MANA_COST)) {
             damage = (Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) + SPELL_DAMAGE_MIN) + Math.floor(player.level / 2);
             success = true;
             combat.lastAction = `Player cast Fireball for ${damage} damage`;

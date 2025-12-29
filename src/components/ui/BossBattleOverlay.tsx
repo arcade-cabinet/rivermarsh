@@ -6,20 +6,14 @@ import { BOSSES } from '../../ecs/data/bosses';
 
 export const BossBattleOverlay: React.FC = () => {
     const { gameMode, activeBossId, player } = useGameStore();
-    
-    if (gameMode !== 'boss_battle' || activeBossId === null) return null;
 
     const bossEntity = world.entities.find(e => String(e.id) === String(activeBossId));
-    if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) return null;
-
-    const { boss, species, combat } = bossEntity;
-    const bossData = (BOSSES as any)[boss.type];
-
-    const healthPercent = species.maxHealth > 0 ? (species.health / species.maxHealth) * 100 : 0;
-
+    
     useEffect(() => {
+        if (!bossEntity || !bossEntity.combat || gameMode !== 'boss_battle') return;
+
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (combat.turn !== 'player') return;
+            if (bossEntity.combat!.turn !== 'player') return;
             
             if (e.key.toLowerCase() === 'a') {
                 handlePlayerAction('attack');
@@ -30,7 +24,15 @@ export const BossBattleOverlay: React.FC = () => {
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [combat.turn]);
+    }, [bossEntity?.combat?.turn, gameMode, bossEntity]);
+    
+    if (gameMode !== 'boss_battle' || activeBossId === null) return null;
+
+    if (!bossEntity || !bossEntity.boss || !bossEntity.species || !bossEntity.combat) return null;
+
+    const { boss, species, combat } = bossEntity;
+    const bossData = (BOSSES as any)[boss.type];
+    const healthPercent = species.maxHealth > 0 ? (species.health / species.maxHealth) * 100 : 0;
 
     return (
         <div style={{

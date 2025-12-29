@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 interface TutorialStep {
     id: string;
@@ -40,24 +40,18 @@ const TUTORIAL_STEPS: TutorialStep[] = [
 const TUTORIAL_STORAGE_KEY = 'rivermarsh_tutorial_completed';
 
 export function Tutorial() {
-    const [showTutorial, setShowTutorial] = useState(false);
-    const [currentStep, setCurrentStep] = useState(0);
-    const [hasSeenTutorial, setHasSeenTutorial] = useState(false);
-
-    // Check if user has seen tutorial before
-    useEffect(() => {
+    const [hasSeenTutorial, setHasSeenTutorial] = useState(() => {
         try {
-            const completed = localStorage.getItem(TUTORIAL_STORAGE_KEY);
-            if (completed === 'true') {
-                setHasSeenTutorial(true);
-            } else {
-                setShowTutorial(true);
-            }
+            return localStorage.getItem(TUTORIAL_STORAGE_KEY) === 'true';
         } catch (e) {
             console.error('Failed to check tutorial status:', e);
-            setShowTutorial(true);
+            return false;
         }
-    }, []);
+    });
+    const [showTutorial, setShowTutorial] = useState(!hasSeenTutorial);
+    const [currentStep, setCurrentStep] = useState(0);
+
+    // No longer need this useEffect as we initialize in useState
 
     const handleNext = () => {
         if (currentStep < TUTORIAL_STEPS.length - 1) {

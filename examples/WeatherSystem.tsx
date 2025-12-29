@@ -1,8 +1,10 @@
 import { createTimeOfDay, ProceduralSky, Rain, Snow } from '@jbcom/strata';
 import { OrbitControls, PerspectiveCamera, Stars } from '@react-three/drei';
 import { Canvas } from '@react-three/fiber';
-import { Suspense, useRef, useState } from 'react';
+import { Suspense, useState } from 'react';
 import * as THREE from 'three';
+
+const WIND = new THREE.Vector3(0.5, 0, 0.2);
 
 /**
  * WeatherSystem Example
@@ -15,7 +17,6 @@ export const WeatherExample = () => {
     const [isNight, setIsNight] = useState(false);
 
     const timeOfDay = createTimeOfDay(isNight ? 0 : 12);
-    const wind = useRef(new THREE.Vector3(0.5, 0, 0.2));
 
     return (
         <div style={{ width: '100%', height: '100vh', background: '#000' }}>
@@ -40,9 +41,9 @@ export const WeatherExample = () => {
 
                     {/* Weather Particles */}
                     {weatherType === 'rain' ? (
-                        <Rain intensity={intensity} wind={wind.current} color="#88aacc" />
+                        <Rain intensity={intensity} wind={WIND} color="#88aacc" />
                     ) : (
-                        <Snow intensity={intensity} wind={wind.current} color="#ffffff" />
+                        <Snow intensity={intensity} wind={WIND} color="#ffffff" />
                     )}
 
                     <ambientLight intensity={isNight ? 0.2 : 0.5} />

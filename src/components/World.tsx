@@ -12,7 +12,7 @@ import {
     VolumetricFogMesh,
 } from '@jbcom/strata';
 import { useFrame } from '@react-three/fiber';
-import { useEffect, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { world as ecsWorld } from '@/ecs/world';
 import { getBiomeLayout } from '@/ecs/systems/BiomeSystem';
@@ -57,13 +57,14 @@ export function World() {
     );
 }
 
+const DEFAULT_WIND = new THREE.Vector3(0.3, 0, 0.1);
+
 /**
  * Weather effects using Strata's Rain and Snow
  */
 function WeatherEffects() {
     const [weather, setWeather] = useState<'clear' | 'rain' | 'snow'>('clear');
     const [intensity, setIntensity] = useState(0);
-    const windRef = useRef(new THREE.Vector3(0.3, 0, 0.1));
 
     useFrame(() => {
         // Read weather from ECS
@@ -99,11 +100,11 @@ function WeatherEffects() {
     }
 
     if (weather === 'rain') {
-        return <Rain intensity={intensity} wind={windRef.current} color="#88aacc" />;
+        return <Rain intensity={intensity} wind={DEFAULT_WIND} color="#88aacc" />;
     }
 
     if (weather === 'snow') {
-        return <Snow intensity={intensity} wind={windRef.current} color="#ffffff" />;
+        return <Snow intensity={intensity} wind={DEFAULT_WIND} color="#ffffff" />;
     }
 
     return null;
@@ -150,21 +151,19 @@ function NightFireflies({ count = 80, radius = 25 }: { count?: number; radius?: 
 }
 
 function MarshWaterFeatures() {
-    const [waterPools, setWaterPools] = useState<
+    const [waterPools] = useState<
         Array<{ position: [number, number, number]; size: number }>
-    >([]);
-
-    useEffect(() => {
+    >(() => {
         const layout = getBiomeLayout();
 
         // Find marsh biome
         const marshBiome = layout.find((b: { type: string }) => b.type === 'marsh');
         if (!marshBiome) {
-            return;
+            return [];
         }
 
         // Generate water pools in marsh area
-        const pools: typeof waterPools = [];
+        const pools: Array<{ position: [number, number, number]; size: number }> = [];
         const poolCount = 8;
 
         for (let i = 0; i < poolCount; i++) {
@@ -186,8 +185,8 @@ function MarshWaterFeatures() {
             size: 20,
         });
 
-        setWaterPools(pools);
-    }, []);
+        return pools;
+    });
 
     return (
         <>
@@ -285,11 +284,13 @@ function Atmosphere() {
     const [timePhase, setTimePhase] = useState<'dawn' | 'day' | 'dusk' | 'night'>('day');
     const [fogDensity, setFogDensity] = useState(0.025);
     const [hour, setHour] = useState(12);
-    const currentFogColor = useRef(new THREE.Color('#aabbcc'));
+    const [fogColor, setFogColor] = useState(new THREE.Color('#aabbcc'));
     const targetFogColor = useRef(new THREE.Color('#aabbcc'));
 
     useFrame(() => {
         let combinedFogDensity = 0;
+        const newFogColor = fogColor.clone();
+        
         for (const entity of ecsWorld.with('time')) {
             const time = entity.time;
             if (time.phase !== timePhase) {
@@ -310,7 +311,7 @@ function Atmosphere() {
             } else {
                 targetFogColor.current.setHex(0xaabbcc);
             }
-            currentFogColor.current.lerp(targetFogColor.current, 0.01);
+            newFogColor.lerp(targetFogColor.current, 0.01);
         }
 
         for (const entity of ecsWorld.with('weather')) {
@@ -329,10 +330,14 @@ function Atmosphere() {
         if (combinedFogDensity !== fogDensity) {
             setFogDensity(combinedFogDensity);
         }
+        
+        if (!newFogColor.equals(fogColor)) {
+            setFogColor(newFogColor);
+        }
     });
 
     // Create time of day state for ProceduralSky
-    const timeOfDay = createTimeOfDay(hour);
+    const timeOfDay = useMemo(() => createTimeOfDay(hour), [hour]);
 
     return (
         <>
@@ -340,7 +345,7 @@ function Atmosphere() {
             <ProceduralSky timeOfDay={timeOfDay} />
 
             {/* Strata's volumetric fog */}
-            <VolumetricFogMesh density={fogDensity} color={currentFogColor.current} height={20} />
+            <VolumetricFogMesh density={fogDensity} color={fogColor} height={20} />
         </>
     );
 }
