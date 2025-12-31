@@ -108,6 +108,15 @@ export function addQuestToPlayer(quest: QuestComponent) {
     }
 }
 
+/**
+ * Gets a quest component by ID
+ */
+export function getQuestById(id: string): QuestComponent | null {
+    if (id === 'starter_quest') return STARTER_QUEST;
+    if (id === 'recover_fish') return RECOVER_FISH_QUEST;
+    return null;
+}
+
 export const RECOVER_FISH_QUEST: QuestComponent = {
     id: 'recover_fish',
     title: 'Recover Stolen Fish',

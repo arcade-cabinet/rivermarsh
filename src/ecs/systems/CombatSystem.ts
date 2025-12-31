@@ -1,6 +1,7 @@
 import { combatEvents } from '../../events/combatEvents';
 import { useRPGStore } from '../../stores';
 import { world } from '../world';
+import { updateQuestProgress } from './QuestSystem';
 
 /**
  * CombatSystem - Handles combat logic and hit detection
@@ -39,8 +40,13 @@ export function CombatSystem() {
                         // Check if NPC died (it will be removed from store if health <= 0)
                         const npcAfter = useRPGStore.getState().npcs.find((n: any) => n.id === npcId);
                         if (!npcAfter) {
-                            // Dead!
-                            entity.species!.state = 'dead';
+                        // Dead!
+                        entity.species!.state = 'dead';
+                        
+                        // Update quest progress
+                        if (entity.species?.name) {
+                            updateQuestProgress('kill', entity.species.name);
+                        }
                         }
                     }
                 }

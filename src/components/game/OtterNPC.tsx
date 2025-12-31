@@ -5,6 +5,7 @@ import * as THREE from 'three';
 import { useControlsStore } from '@/stores/controlsStore';
 import { useEngineStore, useRPGStore } from '@/stores';
 import type { OtterNPC as OtterNPCType } from '@/stores';
+import { addQuestToPlayer, getQuestById, updateQuestProgress } from '@/ecs/systems/QuestSystem';
 
 interface OtterNPCProps {
     npc: OtterNPCType;
@@ -118,8 +119,21 @@ export function OtterNPC({ npc }: OtterNPCProps) {
     const handleInteract = useCallback(() => {
         if (npc.dialogue && isInRange.current) {
             startDialogue(npc.id, npc.name, npc.dialogue);
+            
+            // Update quest progress
+            updateQuestProgress('talk', npc.id);
+
+            // Add quest if applicable
+            if (npc.quests && npc.quests.length > 0) {
+                npc.quests.forEach(questId => {
+                    const quest = getQuestById(questId);
+                    if (quest) {
+                        addQuestToPlayer(quest);
+                    }
+                });
+            }
         }
-    }, [npc.id, npc.name, npc.dialogue, startDialogue]);
+    }, [npc.id, npc.name, npc.dialogue, npc.quests, startDialogue]);
 
     // Handle keyboard 'E' key for interaction
     useEffect(() => {

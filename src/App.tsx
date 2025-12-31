@@ -19,6 +19,7 @@ import { BossBattleOverlay } from '@/components/ui/BossBattleOverlay';
 import { EventOverlay } from '@/components/ui/EventOverlay';
 import { GameOver } from '@/components/ui/GameOver';
 import { HUD } from '@/components/ui/HUD';
+import { QuestOverlay } from '@/components/ui/QuestOverlay';
 import { Loader } from '@/components/ui/Loader';
 import { MainMenu } from '@/components/ui/MainMenu';
 import { Tutorial } from '@/components/ui/Tutorial';
@@ -219,6 +220,7 @@ export default function App() {
 
                     <InputZone />
                     <HUD />
+                    <QuestOverlay />
                     <AchievementOverlay />
                     <EventOverlay />
 

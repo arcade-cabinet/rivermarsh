@@ -11,6 +11,7 @@ import { CollisionSystem } from '../ecs/systems/CollisionSystem';
 import { CombatSystem } from '../ecs/systems/CombatSystem';
 import { EnemyEffectsSystem } from '../ecs/systems/EnemyEffectsSystem';
 import { PlayerSyncSystem } from '../ecs/systems/PlayerSyncSystem';
+import { QuestSystem } from '../ecs/systems/QuestSystem';
 import { ResourceSystem } from '../ecs/systems/ResourceSystem';
 import { SpawnSystem } from '../ecs/systems/SpawnSystem';
 import { TimeSystem } from '../ecs/systems/TimeSystem';
@@ -93,6 +94,7 @@ export function GameSystems() {
         
         // 7. Meta / Rewards
         AchievementSystem();
+        QuestSystem();
     });
 
     return <AudioSystem />;

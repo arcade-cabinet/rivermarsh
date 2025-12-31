@@ -4,6 +4,7 @@ import { getAudioManager } from '../../utils/audioManager';
 import { RESOURCES, type ResourceType } from '../data/resources';
 import { world } from '../world';
 import { getCurrentBiome } from './BiomeSystem';
+import { updateQuestProgress } from './QuestSystem';
 
 const MAX_RESOURCES = 20;
 const SPAWN_RADIUS = 50;
@@ -141,6 +142,9 @@ export function ResourceSystem(playerPos: THREE.Vector3, _delta: number) {
             if (audioManager) {
                 audioManager.playSound('collect', 0.6);
             }
+
+            // Update quest progress
+            updateQuestProgress('collect', entity.resource.type);
 
             console.log(`Collected ${entity.resource.type}!`);
         }
