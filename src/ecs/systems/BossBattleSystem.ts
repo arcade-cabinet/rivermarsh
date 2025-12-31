@@ -2,6 +2,7 @@ import { world } from '../world';
 import { useEngineStore, useRPGStore } from '../../stores';
 import { BOSSES } from '../data/bosses';
 import { combatEvents } from '../../events/combatEvents';
+import { castSpell } from './SpellSystem';
 
 // Constants for combat balancing
 const BOSS_TURN_DELAY = 1000;
@@ -9,9 +10,6 @@ const MIN_BOSS_DAMAGE = 5;
 const MAX_BOSS_DAMAGE = 10;
 const PLAYER_ATTACK_MIN = 2;
 const PLAYER_ATTACK_MAX = 4;
-const SPELL_MANA_COST = 3;
-const SPELL_DAMAGE_MIN = 3;
-const SPELL_DAMAGE_MAX = 6;
 const SPECIAL_ABILITY_COOLDOWN = 3;
 
 /**
@@ -120,12 +118,10 @@ export function BossBattleSystem() {
     }
 }
 
-/**
- * Function to handle player actions in boss battles (called from UI).
- */
+// Function to handle player actions in boss battles (called from UI).
 export function handlePlayerAction(action: 'attack' | 'spell') {
     const rpgStore = useRPGStore.getState();
-    const { activeBossId, player, useMana } = rpgStore;
+    const { activeBossId, player } = rpgStore;
     
     if (activeBossId === null) {
         return;
@@ -151,16 +147,12 @@ export function handlePlayerAction(action: 'attack' | 'spell') {
         success = true;
         combat.lastAction = `Player attacked for ${damage} damage`;
     } else if (action === 'spell') {
-        // Spell: Fireball 3-6 damage, costs 3 mana
-        if (useMana(SPELL_MANA_COST)) {
-            damage =
-                Math.floor(Math.random() * (SPELL_DAMAGE_MAX - SPELL_DAMAGE_MIN + 1)) +
-                SPELL_DAMAGE_MIN +
-                Math.floor(player.level / 2);
+        // Use SpellSystem for casting
+        const caster = world.with('isPlayer').entities[0];
+        if (caster && castSpell('fireball', caster.id!, activeBossId, bossEntity.transform?.position)) {
             success = true;
-            combat.lastAction = `Player cast Fireball for ${damage} damage`;
+            combat.lastAction = `Player cast Fireball`;
         } else {
-            console.log('Not enough mana!');
             return;
         }
     }

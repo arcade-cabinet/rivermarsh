@@ -162,6 +162,19 @@ export interface QuestComponent {
     };
 }
 
+export type SpellType = 'fireball' | 'heal' | 'shield';
+
+export interface SpellComponent {
+    type: SpellType;
+    casterId: number;
+    targetId?: number;
+    targetPosition?: Vector3;
+    startTime: number;
+    duration: number;
+    intensity: number;
+    isFinished: boolean;
+}
+
 // The Entity Type
 export type Entity = {
     id?: number; // Miniplex auto-generates this, so it's optional when creating entities
@@ -173,6 +186,7 @@ export type Entity = {
     isResource?: boolean;
     isCamera?: boolean;
     isBoss?: boolean;
+    isSpell?: boolean;
 
     // Components
     transform?: TransformComponent;
@@ -185,6 +199,7 @@ export type Entity = {
     audioListener?: boolean;
     boss?: BossComponent;
     quests?: QuestComponent[];
+    spell?: SpellComponent;
 
     // Global Singletons (usually on isWorld entity)
     time?: TimeOfDayComponent;

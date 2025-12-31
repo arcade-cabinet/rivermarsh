@@ -3,7 +3,7 @@ import { Physics } from '@react-three/rapier';
 import { useEffect, useState } from 'react';
 import * as THREE from 'three';
 import { FollowCamera } from '@/components/Camera';
-import { BossBattleEffects, Combat, GameUI, NPCManager } from '@/components/game';
+import { BossBattleEffects, Combat, GameUI, NPCManager, SpellEffects } from '@/components/game';
 import {
     GyroscopeCamera,
     MobileActionButtons,
@@ -63,6 +63,7 @@ function Scene({ useMobileControls = false }: SceneProps) {
                 {/* Rivermarsh NPC system - spawns story NPCs */}
                 <NPCManager />
                 <BossBattleEffects />
+                <SpellEffects />
             </Physics>
 
             {/* Use gyroscope camera on mobile, follow camera on desktop */}

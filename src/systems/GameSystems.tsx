@@ -13,6 +13,7 @@ import { EnemyEffectsSystem } from '../ecs/systems/EnemyEffectsSystem';
 import { PlayerSyncSystem } from '../ecs/systems/PlayerSyncSystem';
 import { QuestSystem } from '../ecs/systems/QuestSystem';
 import { ResourceSystem } from '../ecs/systems/ResourceSystem';
+import { SpellSystem } from '../ecs/systems/SpellSystem';
 import { SpawnSystem } from '../ecs/systems/SpawnSystem';
 import { TimeSystem } from '../ecs/systems/TimeSystem';
 import { WeatherSystem } from '../ecs/systems/WeatherSystem';
@@ -85,6 +86,7 @@ export function GameSystems() {
         CollisionSystem(delta);
         CombatSystem();
         EnemyEffectsSystem(delta);
+        SpellSystem(delta);
         
         // 6. World State & Spawning
         WorldEventSystem();
